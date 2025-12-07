@@ -1255,7 +1255,10 @@ function App() {
 
       <div className="flex-1 relative min-h-0">
         {/* Vault layer */}
-        <div className={cn("absolute inset-0 flex min-h-0", isVaultActive ? "opacity-100 z-20" : "opacity-0 pointer-events-none z-0")}>
+        <div
+          className="absolute inset-0 min-h-0 flex z-20"
+          style={{ display: isVaultActive ? 'flex' : 'none' }}
+        >
           {/* Sidebar */}
           <div className="w-64 bg-secondary/80 border-r border-border/60 flex flex-col">
             <div className="px-4 py-4 flex items-center gap-3">
@@ -1508,7 +1511,10 @@ function App() {
         </div>
 
         {/* SFTP layer */}
-        <div className={cn("absolute inset-0 flex min-h-0", isSftpActive && !draggingSessionId ? "opacity-100 z-20" : "opacity-0 pointer-events-none z-0")}>
+        <div
+          className="absolute inset-0 min-h-0 flex z-20"
+          style={{ display: isSftpActive && !draggingSessionId ? 'flex' : 'none' }}
+        >
           <div className="flex-1 flex flex-col min-h-0 bg-background">
             <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 min-h-0 border-t border-border/70">
               {/* Left pane */}
@@ -1729,7 +1735,8 @@ function App() {
         {/* Terminal layer (kept mounted) */}
         <div
           ref={workspaceOuterRef}
-          className={cn("absolute inset-0 bg-background", isTerminalLayerVisible ? "opacity-100 z-10" : "opacity-0 pointer-events-none z-0")}
+          className="absolute inset-0 bg-background flex"
+          style={{ display: isTerminalLayerVisible ? 'flex' : 'none', zIndex: isTerminalLayerVisible ? 10 : 0 }}
         >
           {draggingSessionId && (
             <div
