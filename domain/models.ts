@@ -1,124 +1,19 @@
-// Proxy configuration for SSH connections
-export type ProxyType = 'http' | 'socks5';
 // UI locale identifier, stored in settings and used for i18n (e.g., "en", "zh-CN").
 export type UILanguage = string;
 
-export interface ProxyConfig {
-  type: ProxyType;
-  host: string;
-  port: number;
-  username?: string;
-  password?: string;
-}
-
-// Host chain configuration for jump host / bastion connections
-export interface HostChainConfig {
-  hostIds: string[]; // Array of host IDs in order (first = closest to client)
-}
-
-// Environment variable for SSH session
-export interface EnvVar {
-  name: string;
-  value: string;
-}
-
-// Protocol type for connections
-export type HostProtocol = 'ssh' | 'telnet' | 'mosh' | 'local' | 'serial';
-
-// Serial port configuration
-export type SerialParity = 'none' | 'even' | 'odd' | 'mark' | 'space';
-export type SerialFlowControl = 'none' | 'xon/xoff' | 'rts/cts';
-
-export interface SerialConfig {
-  path: string; // Serial port path (e.g., /dev/ttyUSB0, COM1)
-  baudRate: number; // Baud rate (e.g., 9600, 115200)
-  dataBits?: 5 | 6 | 7 | 8; // Data bits (default: 8)
-  stopBits?: 1 | 1.5 | 2; // Stop bits (default: 1)
-  parity?: SerialParity; // Parity (default: 'none')
-  flowControl?: SerialFlowControl; // Flow control (default: 'none')
-  localEcho?: boolean; // Force local echo (default: false, rely on remote echo)
-  lineMode?: boolean; // Line mode - buffer input and send on Enter (default: false)
-}
-
-// Per-protocol configuration
-export interface ProtocolConfig {
-  protocol: HostProtocol;
-  port: number;
-  enabled: boolean;
-  // Mosh-specific
-  moshServerPath?: string;
-  // Protocol-specific theme override
-  theme?: string;
-}
-
+// SMB Host - represents an SMB/CIFS network share connection
 export interface Host {
   id: string;
   label: string;
-  hostname: string;
-  port: number;
+  hostname: string; // Server hostname or IP address
+  port: number; // SMB port (default: 445)
+  share: string; // SMB share name (e.g., "shared", "public")
   username: string;
-  // Optional reference to a reusable identity (username + auth) stored in Keychain.
-  identityId?: string;
-  group?: string;
-  tags: string[];
-  os: 'linux' | 'windows' | 'macos';
-  identityFileId?: string; // Reference to SSHKey
-  protocol?: 'ssh' | 'telnet' | 'local' | 'serial'; // Default/primary protocol
   password?: string;
-  authMethod?: 'password' | 'key' | 'certificate';
-  agentForwarding?: boolean;
+  domain?: string; // Windows domain (optional)
+  group?: string; // Folder group for organizing hosts
+  tags: string[];
   createdAt?: number; // Timestamp when host was created
-  startupCommand?: string;
-  hostChaining?: string; // Deprecated: use hostChain instead
-  proxy?: string; // Deprecated: use proxyConfig instead
-  proxyConfig?: ProxyConfig; // New structured proxy configuration
-  hostChain?: HostChainConfig; // New structured host chain configuration
-  envVars?: string; // Deprecated: use environmentVariables instead
-  environmentVariables?: EnvVar[]; // Structured environment variables
-  charset?: string;
-  moshEnabled?: boolean;
-  moshServerPath?: string; // Custom mosh-server path (e.g., /usr/local/bin/mosh-server)
-  theme?: string;
-  fontFamily?: string; // Terminal font family for this host
-  fontSize?: number; // Terminal font size for this host (pt)
-  distro?: string; // detected distro id (e.g., ubuntu, debian)
-  // Multi-protocol support
-  protocols?: ProtocolConfig[]; // Multiple protocol configurations
-  telnetPort?: number; // Telnet-specific port (for quick access)
-  telnetEnabled?: boolean; // Is Telnet enabled for this host
-  telnetUsername?: string; // Telnet-specific username
-  telnetPassword?: string; // Telnet-specific password
-}
-
-export type KeyType = 'RSA' | 'ECDSA' | 'ED25519';
-export type KeySource = 'generated' | 'imported';
-export type KeyCategory = 'key' | 'certificate' | 'identity';
-export type IdentityAuthMethod = 'password' | 'key' | 'certificate';
-
-export interface SSHKey {
-  id: string;
-  label: string;
-  type: KeyType;
-  keySize?: number; // RSA: 4096/2048/1024, ECDSA: 521/384/256
-  privateKey: string;
-  publicKey?: string;
-  certificate?: string;
-  passphrase?: string; // encrypted or stored securely
-  savePassphrase?: boolean;
-  source: KeySource;
-  category: KeyCategory;
-  created: number;
-}
-
-// Identity combines username with authentication method
-export interface Identity {
-  id: string;
-  label: string;
-  username: string;
-  authMethod: IdentityAuthMethod;
-  password?: string; // For password auth
-  keyId?: string; // Reference to SSHKey for key/certificate auth
-  created: number;
 }
 
 export interface Snippet {
@@ -128,18 +23,6 @@ export interface Snippet {
   tags?: string[];
   package?: string; // package path
   targets?: string[]; // host ids
-}
-
-export interface TerminalLine {
-  type: 'input' | 'output' | 'error' | 'system';
-  content: string;
-  directory?: string;
-  timestamp: number;
-}
-
-export interface ChatMessage {
-  role: 'user' | 'model';
-  text: string;
 }
 
 export interface GroupNode {
@@ -165,7 +48,7 @@ export interface KeyBinding {
   label: string;
   mac: string; // e.g., '⌘+1', '⌘+⌥+arrows'
   pc: string; // e.g., 'Ctrl+1', 'Ctrl+Alt+arrows'
-  category: 'tabs' | 'terminal' | 'navigation' | 'app';
+  category: 'tabs' | 'navigation' | 'app';
 }
 
 // User's custom key bindings - only stores overrides from defaults
@@ -297,174 +180,13 @@ export const DEFAULT_KEY_BINDINGS: KeyBinding[] = [
   { id: 'next-tab', action: 'nextTab', label: 'Next Tab', mac: '⌘ + Shift + ]', pc: 'Ctrl + Tab', category: 'tabs' },
   { id: 'prev-tab', action: 'prevTab', label: 'Previous Tab', mac: '⌘ + Shift + [', pc: 'Ctrl + Shift + Tab', category: 'tabs' },
   { id: 'close-tab', action: 'closeTab', label: 'Close Tab', mac: '⌘ + W', pc: 'Ctrl + W', category: 'tabs' },
-  { id: 'new-tab', action: 'newTab', label: 'New Local Tab', mac: '⌘ + T', pc: 'Ctrl + T', category: 'tabs' },
-
-  // Terminal Operations
-  { id: 'copy', action: 'copy', label: 'Copy from Terminal', mac: '⌘ + C', pc: 'Ctrl + Shift + C', category: 'terminal' },
-  { id: 'paste', action: 'paste', label: 'Paste to Terminal', mac: '⌘ + V', pc: 'Ctrl + Shift + V', category: 'terminal' },
-  { id: 'select-all', action: 'selectAll', label: 'Select All in Terminal', mac: '⌘ + A', pc: 'Ctrl + Shift + A', category: 'terminal' },
-  { id: 'clear-buffer', action: 'clearBuffer', label: 'Clear Terminal Buffer', mac: '⌘ + K', pc: 'Ctrl + L', category: 'terminal' },
-  { id: 'search-terminal', action: 'searchTerminal', label: 'Open Terminal Search', mac: '⌘ + F', pc: 'Ctrl + Shift + F', category: 'terminal' },
-
-  // Navigation / Split View
-  { id: 'move-focus', action: 'moveFocus', label: 'Move focus between Split View panes', mac: '⌘ + ⌥ + arrows', pc: 'Ctrl + Alt + arrows', category: 'navigation' },
-  { id: 'split-horizontal', action: 'splitHorizontal', label: 'Split Horizontal', mac: '⌘ + D', pc: 'Ctrl + Shift + D', category: 'navigation' },
-  { id: 'split-vertical', action: 'splitVertical', label: 'Split Vertical', mac: '⌘ + Shift + D', pc: 'Ctrl + Shift + E', category: 'navigation' },
 
   // App Features
   { id: 'open-hosts', action: 'openHosts', label: 'Open Hosts Page', mac: 'Disabled', pc: 'Disabled', category: 'app' },
-  { id: 'open-local', action: 'openLocal', label: 'Open Local Terminal', mac: '⌘ + L', pc: 'Ctrl + L', category: 'app' },
-  { id: 'open-sftp', action: 'openSftp', label: 'Open SFTP', mac: '⌘ + Shift + S', pc: 'Ctrl + Shift + S', category: 'app' },
-  { id: 'port-forwarding', action: 'portForwarding', label: 'Open Port Forwarding', mac: '⌘ + P', pc: 'Ctrl + P', category: 'app' },
+  { id: 'open-smb', action: 'openSmb', label: 'Open SMB Browser', mac: '⌘ + Shift + S', pc: 'Ctrl + Shift + S', category: 'app' },
   { id: 'command-palette', action: 'commandPalette', label: 'Open Command Palette', mac: '⌘ + K', pc: 'Ctrl + K', category: 'app' },
   { id: 'quick-switch', action: 'quickSwitch', label: 'Quick Switch', mac: '⌘ + J', pc: 'Ctrl + J', category: 'app' },
-  { id: 'snippets', action: 'snippets', label: 'Open Snippets', mac: '⌘ + Shift + S', pc: 'Ctrl + Alt + S', category: 'app' },
-  { id: 'broadcast', action: 'broadcast', label: 'Switch the Broadcast Mode', mac: '⌘ + B', pc: 'Ctrl + B', category: 'app' },
 ];
-
-// Terminal appearance settings
-export type CursorShape = 'block' | 'bar' | 'underline';
-export type RightClickBehavior = 'context-menu' | 'paste' | 'select-word';
-export type LinkModifier = 'none' | 'ctrl' | 'alt' | 'meta';
-export type TerminalEmulationType = 'xterm-256color' | 'xterm-16color' | 'xterm';
-
-// Keyword highlighting configuration
-export interface KeywordHighlightRule {
-  id: string;
-  label: string; // Display name (e.g., "Error", "Warning", "OK")
-  patterns: string[]; // Regex patterns to match
-  color: string; // Highlight color (hex)
-  enabled: boolean;
-}
-
-export interface TerminalSettings {
-  // Rendering
-  scrollback: number; // Number of lines kept in buffer
-  drawBoldInBrightColors: boolean; // Draw bold text in bright colors
-  terminalEmulationType: TerminalEmulationType; // Terminal emulation type (TERM env var)
-
-  // Font
-  fontLigatures: boolean; // Enable font ligatures
-  fontWeight: number; // Normal font weight (100-900)
-  fontWeightBold: number; // Bold font weight (100-900)
-  linePadding: number; // Additional space between lines
-  fallbackFont: string; // Fallback font family
-
-  // Cursor
-  cursorShape: CursorShape;
-  cursorBlink: boolean;
-
-  // Accessibility
-  minimumContrastRatio: number; // Minimum contrast ratio (1-21)
-
-  // Keyboard
-  altAsMeta: boolean; // Use ⌥ as the Meta key
-  scrollOnInput: boolean; // Scroll terminal to bottom on input
-  scrollOnOutput: boolean; // Scroll terminal to bottom on output
-  scrollOnKeyPress: boolean; // Scroll terminal to bottom on key press
-  scrollOnPaste: boolean; // Scroll terminal to bottom on paste
-
-  // Mouse
-  rightClickBehavior: RightClickBehavior;
-  copyOnSelect: boolean; // Automatically copy selected text
-  middleClickPaste: boolean; // Paste on middle-click
-  wordSeparators: string; // Characters for word selection
-  linkModifier: LinkModifier; // Modifier key to click links
-
-  // Keyword Highlighting
-  keywordHighlightEnabled: boolean;
-  keywordHighlightRules: KeywordHighlightRule[];
-
-  // Local Shell Configuration
-  localShell: string; // Path to shell executable (empty = system default)
-  localStartDir: string; // Starting directory for local terminal (empty = home directory)
-
-  // SSH Connection
-  keepaliveInterval: number; // Seconds between SSH-level keepalive packets (0 = disabled)
-}
-
-export const DEFAULT_KEYWORD_HIGHLIGHT_RULES: KeywordHighlightRule[] = [
-  { id: 'error', label: 'Error', patterns: ['\\[error\\]', '\\[err\\]', '\\berror\\b', '\\bfail(ed)?\\b', '\\bfatal\\b', '\\bcritical\\b', '\\bexception\\b'], color: '#F87171', enabled: true },
-  { id: 'warning', label: 'Warning', patterns: ['\\[warn(ing)?\\]', '\\bwarn(ing)?\\b', '\\bcaution\\b', '\\bdeprecated\\b'], color: '#FBBF24', enabled: true },
-  { id: 'ok', label: 'OK', patterns: ['\\[ok\\]', '\\bok\\b', '\\bsuccess(ful)?\\b', '\\bpassed\\b', '\\bcompleted\\b', '\\bdone\\b'], color: '#34D399', enabled: true },
-  { id: 'info', label: 'Info', patterns: ['\\[info\\]', '\\[notice\\]', '\\[note\\]', '\\bnotice\\b', '\\bnote\\b'], color: '#3B82F6', enabled: true },
-  { id: 'debug', label: 'Debug', patterns: ['\\[debug\\]', '\\[trace\\]', '\\[verbose\\]', '\\bdebug\\b', '\\btrace\\b', '\\bverbose\\b'], color: '#A78BFA', enabled: true },
-  { id: 'ip-mac', label: 'IP address & MAC', patterns: ['\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b', '\\b([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\\b'], color: '#EC4899', enabled: true },
-];
-
-export const DEFAULT_TERMINAL_SETTINGS: TerminalSettings = {
-  scrollback: 10000,
-  drawBoldInBrightColors: true,
-  terminalEmulationType: 'xterm-256color',
-  fontLigatures: true,
-  fontWeight: 400,
-  fontWeightBold: 700,
-  linePadding: 0,
-  fallbackFont: '',
-  cursorShape: 'block',
-  cursorBlink: true,
-  minimumContrastRatio: 1,
-  altAsMeta: false,
-  scrollOnInput: true,
-  scrollOnOutput: false,
-  scrollOnKeyPress: false,
-  scrollOnPaste: true,
-  rightClickBehavior: 'context-menu',
-  copyOnSelect: false,
-  middleClickPaste: true,
-  wordSeparators: ' ()[]{}\'"',
-  linkModifier: 'none',
-  keywordHighlightEnabled: true,
-  keywordHighlightRules: DEFAULT_KEYWORD_HIGHLIGHT_RULES,
-  localShell: '', // Empty = use system default
-  localStartDir: '', // Empty = use home directory
-  keepaliveInterval: 0, // 0 = disabled (use SSH library defaults)
-};
-
-export interface TerminalTheme {
-  id: string;
-  name: string;
-  type: 'dark' | 'light';
-  colors: {
-    background: string;
-    foreground: string;
-    cursor: string;
-    selection: string;
-    black: string;
-    red: string;
-    green: string;
-    yellow: string;
-    blue: string;
-    magenta: string;
-    cyan: string;
-    white: string;
-    brightBlack: string;
-    brightRed: string;
-    brightGreen: string;
-    brightYellow: string;
-    brightBlue: string;
-    brightMagenta: string;
-    brightCyan: string;
-    brightWhite: string;
-  }
-}
-
-export interface TerminalSession {
-  id: string;
-  hostId: string;
-  hostLabel: string;
-  username: string;
-  hostname: string;
-  status: 'connecting' | 'connected' | 'disconnected';
-  workspaceId?: string;
-  startupCommand?: string; // Command to run after connection (for snippet runner)
-  // Connection-time protocol overrides (used instead of looking up from hosts)
-  protocol?: 'ssh' | 'telnet' | 'local' | 'serial';
-  port?: number;
-  moshEnabled?: boolean;
-  // Serial-specific connection settings
-  serialConfig?: SerialConfig;
-}
 
 export interface RemoteFile {
   name: string;
@@ -475,46 +197,18 @@ export interface RemoteFile {
   permissions?: string; // rwx format for owner/group/others e.g. "rwxr-xr-x"
 }
 
-export type WorkspaceNode =
-  | {
-      id: string;
-      type: 'pane';
-      sessionId: string;
-    }
-  | {
-      id: string;
-      type: 'split';
-      direction: 'horizontal' | 'vertical';
-      children: WorkspaceNode[];
-      sizes?: number[]; // relative sizes for children
-    };
-
-export type WorkspaceViewMode = 'split' | 'focus';
-
-export interface Workspace {
-  id: string;
-  title: string;
-  root: WorkspaceNode;
-  viewMode?: WorkspaceViewMode; // 'split' = tiled view (default), 'focus' = left list + single terminal
-  focusedSessionId?: string; // Which session is focused when in focus mode
-  snippetId?: string; // If this workspace was created from running a snippet
-}
-
-// SFTP Types
-export interface SftpFileEntry {
+// SMB Types - for file browsing
+export interface SmbFileEntry {
   name: string;
-  type: 'file' | 'directory' | 'symlink';
+  type: 'file' | 'directory';
   size: number;
   sizeFormatted: string;
   lastModified: number;
   lastModifiedFormatted: string;
   permissions?: string;
-  owner?: string;
-  group?: string;
-  linkTarget?: 'file' | 'directory' | null; // For symlinks: the type of the target, or null if broken
 }
 
-export interface SftpConnection {
+export interface SmbConnection {
   id: string;
   hostId: string;
   hostLabel: string;
@@ -560,7 +254,194 @@ export interface FileConflict {
   newModified: number;
 }
 
-// Port Forwarding Types
+// Connection Log - records connection history
+export interface ConnectionLog {
+  id: string;
+  hostId: string; // Host ID (can be empty for local)
+  hostLabel: string; // Display label
+  hostname: string; // Target hostname
+  username: string; // Username
+  protocol: 'smb';
+  startTime: number; // Connection start timestamp
+  endTime?: number; // Connection end timestamp (undefined if still active)
+  localUsername: string; // System username of the local user
+  localHostname: string; // Local machine hostname
+  saved: boolean; // Whether this log is bookmarked/saved
+}
+
+// Legacy types kept for compatibility during migration
+// These will be removed after the refactoring is complete
+export type HostProtocol = 'smb';
+export type KeyType = 'RSA' | 'ECDSA' | 'ED25519';
+export type KeySource = 'generated' | 'imported';
+export type KeyCategory = 'key' | 'certificate' | 'identity';
+export type IdentityAuthMethod = 'password';
+
+export interface SSHKey {
+  id: string;
+  label: string;
+  type: KeyType;
+  keySize?: number;
+  privateKey: string;
+  publicKey?: string;
+  certificate?: string;
+  passphrase?: string;
+  savePassphrase?: boolean;
+  source: KeySource;
+  category: KeyCategory;
+  created: number;
+}
+
+export interface Identity {
+  id: string;
+  label: string;
+  username: string;
+  authMethod: IdentityAuthMethod;
+  password?: string;
+  keyId?: string;
+  created: number;
+}
+
+// Legacy terminal types kept for compatibility during migration
+export interface TerminalTheme {
+  id: string;
+  name: string;
+  type: 'dark' | 'light';
+  colors: {
+    background: string;
+    foreground: string;
+    cursor: string;
+    selection: string;
+    black: string;
+    red: string;
+    green: string;
+    yellow: string;
+    blue: string;
+    magenta: string;
+    cyan: string;
+    white: string;
+    brightBlack: string;
+    brightRed: string;
+    brightGreen: string;
+    brightYellow: string;
+    brightBlue: string;
+    brightMagenta: string;
+    brightCyan: string;
+    brightWhite: string;
+  }
+}
+
+export interface TerminalSettings {
+  scrollback: number;
+  drawBoldInBrightColors: boolean;
+  terminalEmulationType: string;
+  fontLigatures: boolean;
+  fontWeight: number;
+  fontWeightBold: number;
+  linePadding: number;
+  fallbackFont: string;
+  cursorShape: string;
+  cursorBlink: boolean;
+  minimumContrastRatio: number;
+  altAsMeta: boolean;
+  scrollOnInput: boolean;
+  scrollOnOutput: boolean;
+  scrollOnKeyPress: boolean;
+  scrollOnPaste: boolean;
+  rightClickBehavior: string;
+  copyOnSelect: boolean;
+  middleClickPaste: boolean;
+  wordSeparators: string;
+  linkModifier: string;
+  keywordHighlightEnabled: boolean;
+  keywordHighlightRules: KeywordHighlightRule[];
+  localShell: string;
+  localStartDir: string;
+  keepaliveInterval: number;
+}
+
+export interface KeywordHighlightRule {
+  id: string;
+  label: string;
+  patterns: string[];
+  color: string;
+  enabled: boolean;
+}
+
+export const DEFAULT_KEYWORD_HIGHLIGHT_RULES: KeywordHighlightRule[] = [];
+export const DEFAULT_TERMINAL_SETTINGS: TerminalSettings = {
+  scrollback: 10000,
+  drawBoldInBrightColors: true,
+  terminalEmulationType: 'xterm-256color',
+  fontLigatures: true,
+  fontWeight: 400,
+  fontWeightBold: 700,
+  linePadding: 0,
+  fallbackFont: '',
+  cursorShape: 'block',
+  cursorBlink: true,
+  minimumContrastRatio: 1,
+  altAsMeta: false,
+  scrollOnInput: true,
+  scrollOnOutput: false,
+  scrollOnKeyPress: false,
+  scrollOnPaste: true,
+  rightClickBehavior: 'context-menu',
+  copyOnSelect: false,
+  middleClickPaste: true,
+  wordSeparators: ' ()[]{}\'"',
+  linkModifier: 'none',
+  keywordHighlightEnabled: false,
+  keywordHighlightRules: [],
+  localShell: '',
+  localStartDir: '',
+  keepaliveInterval: 0,
+};
+
+// Legacy types - kept for compatibility
+export interface TerminalSession {
+  id: string;
+  hostId: string;
+  hostLabel: string;
+  username: string;
+  hostname: string;
+  status: 'connecting' | 'connected' | 'disconnected';
+  workspaceId?: string;
+  startupCommand?: string;
+  protocol?: 'smb';
+  port?: number;
+}
+
+export interface Workspace {
+  id: string;
+  title: string;
+  root: WorkspaceNode;
+  viewMode?: WorkspaceViewMode;
+  focusedSessionId?: string;
+  snippetId?: string;
+}
+
+export type WorkspaceNode =
+  | {
+      id: string;
+      type: 'pane';
+      sessionId: string;
+    }
+  | {
+      id: string;
+      type: 'split';
+      direction: 'horizontal' | 'vertical';
+      children: WorkspaceNode[];
+      sizes?: number[];
+    };
+
+export type WorkspaceViewMode = 'split' | 'focus';
+
+// Legacy SFTP types renamed for SMB
+export interface SftpFileEntry extends SmbFileEntry {}
+export interface SftpConnection extends SmbConnection {}
+
+// Port forwarding - removed for SMB client
 export type PortForwardingType = 'local' | 'remote' | 'dynamic';
 export type PortForwardingStatus = 'inactive' | 'connecting' | 'active' | 'error';
 
@@ -568,60 +449,35 @@ export interface PortForwardingRule {
   id: string;
   label: string;
   type: PortForwardingType;
-  // Common fields
   localPort: number;
-  bindAddress: string; // e.g., '127.0.0.1', '0.0.0.0'
-  // For local and remote forwarding
+  bindAddress: string;
   remoteHost?: string;
   remotePort?: number;
-  // Host to tunnel through
   hostId?: string;
-  // Auto-start: if true, this rule will automatically start when the app launches
   autoStart?: boolean;
-  // Runtime state
   status: PortForwardingStatus;
   error?: string;
   createdAt: number;
   lastUsedAt?: number;
 }
 
-// Known Hosts - discovered from system SSH known_hosts file
+// Known hosts - not applicable for SMB but kept for type compatibility
 export interface KnownHost {
   id: string;
-  hostname: string; // The host pattern from known_hosts
+  hostname: string;
   port: number;
-  keyType: string; // ssh-rsa, ssh-ed25519, ecdsa-sha2-nistp256, etc.
-  publicKey: string; // The host's public key fingerprint or full key
+  keyType: string;
+  publicKey: string;
   discoveredAt: number;
   lastSeen?: number;
-  convertedToHostId?: string; // If converted to managed host
+  convertedToHostId?: string;
 }
 
-// Shell History - records real commands executed in terminal sessions
 export interface ShellHistoryEntry {
   id: string;
   command: string;
-  hostId: string; // ID of the host where command was executed
-  hostLabel: string; // Label for display
+  hostId: string;
+  hostLabel: string;
   sessionId: string;
   timestamp: number;
-}
-
-// Connection Log - records connection history
-export interface ConnectionLog {
-  id: string;
-  sessionId?: string; // Terminal session ID for matching during capture
-  hostId: string; // Host ID (can be empty for local terminal)
-  hostLabel: string; // Display label (e.g., 'Local Terminal' or host label)
-  hostname: string; // Target hostname or 'localhost'
-  username: string; // SSH username or system username
-  protocol: 'ssh' | 'telnet' | 'local' | 'mosh';
-  startTime: number; // Connection start timestamp
-  endTime?: number; // Connection end timestamp (undefined if still active)
-  localUsername: string; // System username of the local user
-  localHostname: string; // Local machine hostname
-  saved: boolean; // Whether this log is bookmarked/saved
-  terminalData?: string; // Captured terminal output data for replay
-  themeId?: string; // Terminal theme ID for this log view
-  fontSize?: number; // Terminal font size for this log view
 }
