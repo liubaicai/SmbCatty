@@ -29,7 +29,7 @@ let handlersRegistered = false; // Prevent duplicate IPC handler registration
 let menuDeps = null;
 let electronApp = null; // Reference to Electron app for userData path
 const rendererReadyCallbacksByWebContentsId = new Map();
-const DEBUG_WINDOWS = process.env.NETCATTY_DEBUG_WINDOWS === "1";
+const DEBUG_WINDOWS = process.env.SMBCATTY_DEBUG_WINDOWS === "1";
 const OAUTH_DEFAULT_WIDTH = 600;
 const OAUTH_DEFAULT_HEIGHT = 700;
 const OAUTH_OVERLAY_ID = "__netcatty_oauth_loading__";
@@ -154,10 +154,10 @@ function getWindowForIpcEvent(event) {
 function broadcastLanguageChanged() {
   try {
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents?.send?.("netcatty:languageChanged", currentLanguage);
+      mainWindow.webContents?.send?.("smbcatty:languageChanged", currentLanguage);
     }
     if (settingsWindow && !settingsWindow.isDestroyed()) {
-      settingsWindow.webContents?.send?.("netcatty:languageChanged", currentLanguage);
+      settingsWindow.webContents?.send?.("smbcatty:languageChanged", currentLanguage);
     }
   } catch {
     // ignore
@@ -620,12 +620,12 @@ async function createWindow(electronModule, options) {
   });
 
   win.on("enter-full-screen", () => {
-    win.webContents?.send("netcatty:window:fullscreen-changed", true);
+    win.webContents?.send("smbcatty:window:fullscreen-changed", true);
     scheduleSaveState();
   });
 
   win.on("leave-full-screen", () => {
-    win.webContents?.send("netcatty:window:fullscreen-changed", false);
+    win.webContents?.send("smbcatty:window:fullscreen-changed", false);
     updateNormalBounds();
     scheduleSaveState();
   });
@@ -675,7 +675,7 @@ async function createWindow(electronModule, options) {
         icon: appIcon,
         autoHideMenuBar: true,
         menuBarVisible: false,
-        title: "Netcatty Authorization",
+        title: "SmbCatty Authorization",
         webPreferences: {
           contextIsolation: true,
           nodeIntegration: false,
@@ -761,11 +761,11 @@ async function openSettingsWindow(electronModule, options) {
   }
 
   win.on("enter-full-screen", () => {
-    win.webContents?.send("netcatty:window:fullscreen-changed", true);
+    win.webContents?.send("smbcatty:window:fullscreen-changed", true);
   });
 
   win.on("leave-full-screen", () => {
-    win.webContents?.send("netcatty:window:fullscreen-changed", false);
+    win.webContents?.send("smbcatty:window:fullscreen-changed", false);
   });
 
   // Ensure native background matches frontend background, even before first paint.
@@ -822,7 +822,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
   }
   handlersRegistered = true;
 
-  ipcMain.handle("netcatty:window:minimize", (event) => {
+  ipcMain.handle("smbcatty:window:minimize", (event) => {
     const win = getWindowForIpcEvent(event);
     if (win && !win.isDestroyed()) {
       debugLog("window:minimize", { senderId: event?.sender?.id, windowId: win.webContents?.id });
@@ -830,7 +830,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     }
   });
 
-  ipcMain.handle("netcatty:window:maximize", (event) => {
+  ipcMain.handle("smbcatty:window:maximize", (event) => {
     const win = getWindowForIpcEvent(event);
     if (win && !win.isDestroyed()) {
       debugLog("window:maximize", { senderId: event?.sender?.id, windowId: win.webContents?.id });
@@ -845,7 +845,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     return false;
   });
 
-  ipcMain.handle("netcatty:window:close", (event) => {
+  ipcMain.handle("smbcatty:window:close", (event) => {
     const win = getWindowForIpcEvent(event);
     if (win && !win.isDestroyed()) {
       debugLog("window:close", {
@@ -858,7 +858,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     }
   });
 
-  ipcMain.handle("netcatty:window:isMaximized", (event) => {
+  ipcMain.handle("smbcatty:window:isMaximized", (event) => {
     const win = getWindowForIpcEvent(event);
     if (win && !win.isDestroyed()) {
       return win.isMaximized();
@@ -866,7 +866,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     return false;
   });
 
-  ipcMain.handle("netcatty:window:isFullscreen", (event) => {
+  ipcMain.handle("smbcatty:window:isFullscreen", (event) => {
     const win = getWindowForIpcEvent(event);
     if (win && !win.isDestroyed()) {
       return win.isFullScreen();
@@ -874,7 +874,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     return false;
   });
 
-  ipcMain.handle("netcatty:setTheme", (_event, theme) => {
+  ipcMain.handle("smbcatty:setTheme", (_event, theme) => {
     currentTheme = theme;
     nativeTheme.themeSource = theme;
     const themeConfig = THEME_COLORS[theme] || THEME_COLORS.light;
@@ -888,7 +888,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     return true;
   });
 
-  ipcMain.handle("netcatty:setBackgroundColor", (_event, color) => {
+  ipcMain.handle("smbcatty:setBackgroundColor", (_event, color) => {
     const normalized = normalizeBackgroundColor(color);
     if (!normalized) return false;
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -900,7 +900,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
     return true;
   });
 
-  ipcMain.handle("netcatty:setLanguage", (_event, language) => {
+  ipcMain.handle("smbcatty:setLanguage", (_event, language) => {
     currentLanguage = typeof language === "string" && language.length ? language : "en";
     rebuildApplicationMenu();
     broadcastLanguageChanged();
@@ -908,7 +908,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
   });
 
   // Settings window close handler
-  ipcMain.handle("netcatty:settings:close", (event) => {
+  ipcMain.handle("smbcatty:settings:close", (event) => {
     // Prefer closing the tracked settings window (if any).
     if (settingsWindow && !settingsWindow.isDestroyed()) {
       debugLog("settings:close (tracked)", {
@@ -938,15 +938,15 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
   });
 
   // Broadcast settings changed to all windows (for cross-window sync)
-  ipcMain.on("netcatty:settings:changed", (event, payload) => {
+  ipcMain.on("smbcatty:settings:changed", (event, payload) => {
     const senderId = event?.sender?.id;
     // Notify all windows except the sender
     try {
       if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.id !== senderId) {
-        mainWindow.webContents.send("netcatty:settings:changed", payload);
+        mainWindow.webContents.send("smbcatty:settings:changed", payload);
       }
       if (settingsWindow && !settingsWindow.isDestroyed() && settingsWindow.webContents.id !== senderId) {
-        settingsWindow.webContents.send("netcatty:settings:changed", payload);
+        settingsWindow.webContents.send("smbcatty:settings:changed", payload);
       }
     } catch {
       // ignore
@@ -954,7 +954,7 @@ function registerWindowHandlers(ipcMain, nativeTheme) {
   });
 
   // Renderer reports first meaningful paint/mount; used to avoid initial blank screen.
-  ipcMain.on("netcatty:renderer:ready", (event) => {
+  ipcMain.on("smbcatty:renderer:ready", (event) => {
     const wcId = event?.sender?.id;
     if (!wcId) return;
     const cb = rendererReadyCallbacksByWebContentsId.get(wcId);

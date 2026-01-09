@@ -7,7 +7,7 @@ const net = require("node:net");
 const fs = require("node:fs");
 const path = require("node:path");
 const { Client: SSHClient, utils: sshUtils } = require("ssh2");
-const { NetcattyAgent } = require("./netcattyAgent.cjs");
+const { SmbCattyAgent } = require("./netcattyAgent.cjs");
 
 // Simple file logger for debugging
 const logFile = path.join(require("os").tmpdir(), "netcatty-ssh.log");
@@ -175,7 +175,7 @@ async function connectThroughChain(event, options, jumpHosts, targetHost, target
   
   const sendProgress = (hop, total, label, status) => {
     if (!sender.isDestroyed()) {
-      sender.send("netcatty:chain:progress", { hop, total, label, status });
+      sender.send("smbcatty:chain:progress", { hop, total, label, status });
     }
   };
   
@@ -218,7 +218,7 @@ async function connectThroughChain(event, options, jumpHosts, targetHost, target
 
       let authAgent = null;
       if (hasCertificate) {
-        authAgent = new NetcattyAgent({
+        authAgent = new SmbCattyAgent({
           mode: "certificate",
           webContents: event.sender,
           meta: {
@@ -335,7 +335,7 @@ async function startSSHSession(event, options) {
   
   const sendProgress = (hop, total, label, status) => {
     if (!sender.isDestroyed()) {
-      sender.send("netcatty:chain:progress", { hop, total, label, status });
+      sender.send("smbcatty:chain:progress", { hop, total, label, status });
     }
   };
 
@@ -392,7 +392,7 @@ async function startSSHSession(event, options) {
 
     let authAgent = null;
     if (hasCertificate) {
-      authAgent = new NetcattyAgent({
+      authAgent = new SmbCattyAgent({
         mode: "certificate",
         webContents: event.sender,
         meta: {
@@ -511,7 +511,7 @@ async function startSSHSession(event, options) {
             const flushBuffer = () => {
               if (dataBuffer.length > 0) {
                 const contents = event.sender;
-                safeSend(contents, "netcatty:data", { sessionId, data: dataBuffer });
+                safeSend(contents, "smbcatty:data", { sessionId, data: dataBuffer });
                 dataBuffer = '';
               }
               flushTimeout = null;
@@ -547,7 +547,7 @@ async function startSSHSession(event, options) {
               }
               flushBuffer();
               const contents = event.sender;
-              safeSend(contents, "netcatty:exit", { sessionId, exitCode: 0 });
+              safeSend(contents, "smbcatty:exit", { sessionId, exitCode: 0 });
               sessions.delete(sessionId);
               conn.end();
               for (const c of chainConnections) {
@@ -578,7 +578,7 @@ async function startSSHSession(event, options) {
         // Use log instead of error for auth failures (normal fallback scenario)
         if (isAuthError) {
           console.log(`${logPrefix} ${options.hostname} auth failed:`, err.message);
-          safeSend(contents, "netcatty:auth:failed", { 
+          safeSend(contents, "smbcatty:auth:failed", { 
             sessionId, 
             error: err.message,
             hostname: options.hostname 
@@ -587,7 +587,7 @@ async function startSSHSession(event, options) {
           console.error(`${logPrefix} ${options.hostname} error:`, err.message);
         }
         
-        safeSend(contents, "netcatty:exit", { sessionId, exitCode: 1, error: err.message });
+        safeSend(contents, "smbcatty:exit", { sessionId, exitCode: 1, error: err.message });
         sessions.delete(sessionId);
         for (const c of chainConnections) {
           try { c.end(); } catch {}
@@ -599,7 +599,7 @@ async function startSSHSession(event, options) {
         console.error(`${logPrefix} ${options.hostname} connection timeout`);
         const err = new Error(`Connection timeout to ${options.hostname}`);
         const contents = event.sender;
-        safeSend(contents, "netcatty:exit", { sessionId, exitCode: 1, error: err.message });
+        safeSend(contents, "smbcatty:exit", { sessionId, exitCode: 1, error: err.message });
         sessions.delete(sessionId);
         for (const c of chainConnections) {
           try { c.end(); } catch {}
@@ -609,7 +609,7 @@ async function startSSHSession(event, options) {
 
       conn.on("close", () => {
         const contents = event.sender;
-        safeSend(contents, "netcatty:exit", { sessionId, exitCode: 0 });
+        safeSend(contents, "smbcatty:exit", { sessionId, exitCode: 0 });
         sessions.delete(sessionId);
         for (const c of chainConnections) {
           try { c.end(); } catch {}
@@ -622,7 +622,7 @@ async function startSSHSession(event, options) {
   } catch (err) {
     console.error("[Chain] SSH chain connection error:", err.message);
     const contents = event.sender;
-    safeSend(contents, "netcatty:exit", { sessionId, exitCode: 1, error: err.message });
+    safeSend(contents, "smbcatty:exit", { sessionId, exitCode: 1, error: err.message });
     throw err;
   }
 }
@@ -698,7 +698,7 @@ async function execCommand(event, payload) {
 
     let authAgent = null;
     if (hasCertificate) {
-      authAgent = new NetcattyAgent({
+      authAgent = new SmbCattyAgent({
         mode: "certificate",
         webContents: event.sender,
         meta: {
@@ -851,10 +851,10 @@ async function getSessionPwd(event, payload) {
  * Register IPC handlers for SSH operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:start", startSSHSessionWrapper);
-  ipcMain.handle("netcatty:ssh:exec", execCommand);
-  ipcMain.handle("netcatty:ssh:pwd", getSessionPwd);
-  ipcMain.handle("netcatty:key:generate", generateKeyPair);
+  ipcMain.handle("smbcatty:start", startSSHSessionWrapper);
+  ipcMain.handle("smbcatty:ssh:exec", execCommand);
+  ipcMain.handle("smbcatty:ssh:pwd", getSessionPwd);
+  ipcMain.handle("smbcatty:key:generate", generateKeyPair);
 }
 
 module.exports = {

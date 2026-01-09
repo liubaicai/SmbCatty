@@ -1383,7 +1383,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({
                                 <Input
                                     value={s3Bucket}
                                     onChange={(e) => setS3Bucket(e.target.value)}
-                                    placeholder="netcatty-backups"
+                                    placeholder="smbcatty-backups"
                                 />
                             </div>
                         </div>
@@ -1422,7 +1422,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({
                             <Input
                                 value={s3Prefix}
                                 onChange={(e) => setS3Prefix(e.target.value)}
-                                placeholder="backups/netcatty"
+                                placeholder="backups/smbcatty"
                             />
                         </div>
 

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { netcattyBridge } from "../../infrastructure/services/netcattyBridge";
+import { smbcattyBridge } from "../../infrastructure/services/smbcattyBridge";
 
 export type ApplicationInfo = {
   name: string;
@@ -10,7 +10,7 @@ export type ApplicationInfo = {
 export const useApplicationBackend = () => {
   const openExternal = useCallback(async (url: string) => {
     try {
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (bridge?.openExternal) {
         await bridge.openExternal(url);
         return;
@@ -22,7 +22,7 @@ export const useApplicationBackend = () => {
   }, []);
 
   const getApplicationInfo = useCallback(async (): Promise<ApplicationInfo | null> => {
-    const bridge = netcattyBridge.get();
+    const bridge = smbcattyBridge.get();
     const info = await bridge?.getAppInfo?.();
     return info ?? null;
   }, []);

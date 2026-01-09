@@ -5,8 +5,8 @@ export type TerminalThemeConfig = TerminalTheme;
 
 export const TERMINAL_THEMES: TerminalTheme[] = [
   {
-    id: 'netcatty-dark',
-    name: 'Netcatty Dark',
+    id: 'smbcatty-dark',
+    name: 'SmbCatty Dark',
     type: 'dark',
     colors: {
       background: '#0d1117',
@@ -32,8 +32,8 @@ export const TERMINAL_THEMES: TerminalTheme[] = [
     }
   },
   {
-    id: 'netcatty-light',
-    name: 'Netcatty Light',
+    id: 'smbcatty-light',
+    name: 'SmbCatty Light',
     type: 'light',
     colors: {
       background: '#f6f8fa',

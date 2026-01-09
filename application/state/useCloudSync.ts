@@ -27,7 +27,7 @@ import {
   getCloudSyncManager,
   type SyncManagerState,
 } from '../../infrastructure/services/CloudSyncManager';
-import { netcattyBridge } from '../../infrastructure/services/netcattyBridge';
+import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
 import type { DeviceFlowState } from '../../infrastructure/services/adapters/GitHubAdapter';
 
 // ============================================================================
@@ -163,7 +163,7 @@ export const useCloudSync = (): CloudSyncHook => {
 
     void (async () => {
       try {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         const password = await bridge?.cloudSyncGetSessionPassword?.();
         if (!password) return;
 
@@ -216,19 +216,19 @@ export const useCloudSync = (): CloudSyncHook => {
       throw new Error('Password must be at least 8 characters');
     }
     await manager.setupMasterKey(password);
-    void netcattyBridge.get()?.cloudSyncSetSessionPassword?.(password);
+    void smbcattyBridge.get()?.cloudSyncSetSessionPassword?.(password);
   }, []);
   
   const unlock = useCallback(async (password: string): Promise<boolean> => {
     const ok = await manager.unlock(password);
     if (ok) {
-      void netcattyBridge.get()?.cloudSyncSetSessionPassword?.(password);
+      void smbcattyBridge.get()?.cloudSyncSetSessionPassword?.(password);
     }
     return ok;
   }, []);
   
   const lock = useCallback(() => {
-    void netcattyBridge.get()?.cloudSyncClearSessionPassword?.();
+    void smbcattyBridge.get()?.cloudSyncClearSessionPassword?.();
     manager.lock();
   }, []);
   
@@ -238,7 +238,7 @@ export const useCloudSync = (): CloudSyncHook => {
   ): Promise<boolean> => {
     const ok = await manager.changeMasterKey(oldPassword, newPassword);
     if (ok) {
-      void netcattyBridge.get()?.cloudSyncSetSessionPassword?.(newPassword);
+      void smbcattyBridge.get()?.cloudSyncSetSessionPassword?.(newPassword);
     }
     return ok;
   }, []);
@@ -274,7 +274,7 @@ export const useCloudSync = (): CloudSyncHook => {
     const data = result.data as { url: string; redirectUri: string };
     
     // Start OAuth callback server in Electron and wait for authorization
-    const bridge = netcattyBridge.get();
+    const bridge = smbcattyBridge.get();
     const startCallback = bridge?.startOAuthCallback;
     if (startCallback) {
       // Get state from adapter for CSRF protection
@@ -307,7 +307,7 @@ export const useCloudSync = (): CloudSyncHook => {
     const data = result.data as { url: string; redirectUri: string };
     
     // Start OAuth callback server in Electron and wait for authorization
-    const bridge = netcattyBridge.get();
+    const bridge = smbcattyBridge.get();
     const startCallback = bridge?.startOAuthCallback;
     if (startCallback) {
       // Get state from adapter for CSRF protection
@@ -380,7 +380,7 @@ export const useCloudSync = (): CloudSyncHook => {
       throw new Error('No master key configured');
     }
 
-    const bridge = netcattyBridge.get();
+    const bridge = smbcattyBridge.get();
     const password = await bridge?.cloudSyncGetSessionPassword?.();
     if (password) {
       const ok = await manager.unlock(password);

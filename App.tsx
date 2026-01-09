@@ -11,7 +11,7 @@ import { initializeFonts } from './application/state/fontStore';
 import { I18nProvider, useI18n } from './application/i18n/I18nProvider';
 import { matchesKeyBinding } from './domain/models';
 import { resolveHostAuth } from './domain/sshAuth';
-import { netcattyBridge } from './infrastructure/services/netcattyBridge';
+import { netcattyBridge } from './infrastructure/services/smbcattyBridge';
 import { TopTabs } from './components/TopTabs';
 import { Button } from './components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
@@ -736,7 +736,7 @@ function App({ settings }: { settings: SettingsState }) {
   }, [setDraggingSessionId]);
 
   return (
-    <div className="flex flex-col h-screen text-foreground font-sans netcatty-shell" onContextMenu={(e) => e.preventDefault()}>
+    <div className="flex flex-col h-screen text-foreground font-sans smbcatty-shell" onContextMenu={(e) => e.preventDefault()}>
       <TopTabs
         theme={theme}
         sessions={sessions}

@@ -24,7 +24,7 @@ import { DEFAULT_FONT_SIZE } from '../../infrastructure/config/fonts';
 import { DARK_UI_THEMES, LIGHT_UI_THEMES, UiThemeTokens, getUiThemeById } from '../../infrastructure/config/uiThemes';
 import { useAvailableFonts } from './fontStore';
 import { localStorageAdapter } from '../../infrastructure/persistence/localStorageAdapter';
-import { netcattyBridge } from '../../infrastructure/services/netcattyBridge';
+import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
 
 const DEFAULT_THEME: 'light' | 'dark' = 'light';
 const DEFAULT_LIGHT_UI_THEME = 'snow';
@@ -102,8 +102,8 @@ const applyThemeTokens = (
   root.style.setProperty('--ring', accentToken);
 
   // Sync with native window title bar (Electron)
-  netcattyBridge.get()?.setTheme?.(theme);
-  netcattyBridge.get()?.setBackgroundColor?.(tokens.background);
+  smbcattyBridge.get()?.setTheme?.(theme);
+  smbcattyBridge.get()?.setBackgroundColor?.(tokens.background);
 };
 
 export const useSettingsState = () => {
@@ -165,7 +165,7 @@ export const useSettingsState = () => {
   // Helper to notify other windows about settings changes via IPC
   const notifySettingsChanged = useCallback((key: string, value: unknown) => {
     try {
-      netcattyBridge.get()?.notifySettingsChanged?.({ key, value });
+      smbcattyBridge.get()?.notifySettingsChanged?.({ key, value });
     } catch {
       // ignore - bridge may not be available
     }
@@ -217,13 +217,13 @@ export const useSettingsState = () => {
   useLayoutEffect(() => {
     localStorageAdapter.writeString(STORAGE_KEY_UI_LANGUAGE, uiLanguage);
     document.documentElement.lang = uiLanguage;
-    netcattyBridge.get()?.setLanguage?.(uiLanguage);
+    smbcattyBridge.get()?.setLanguage?.(uiLanguage);
     notifySettingsChanged(STORAGE_KEY_UI_LANGUAGE, uiLanguage);
   }, [uiLanguage, notifySettingsChanged]);
 
   // Listen for settings changes from other windows via IPC
 	  useEffect(() => {
-	    const bridge = netcattyBridge.get();
+	    const bridge = smbcattyBridge.get();
 	    if (!bridge?.onSettingsChanged) return;
 	    const unsubscribe = bridge.onSettingsChanged((payload) => {
 	      const { key, value } = payload;
@@ -282,7 +282,7 @@ export const useSettingsState = () => {
   }, [syncAppearanceFromStorage, syncCustomCssFromStorage]);
 
   useEffect(() => {
-    const bridge = netcattyBridge.get();
+    const bridge = smbcattyBridge.get();
     if (!bridge?.onLanguageChanged) return;
     const unsubscribe = bridge.onLanguageChanged((language) => {
       if (typeof language !== 'string' || !language.length) return;

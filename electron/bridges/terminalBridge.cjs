@@ -142,13 +142,13 @@ function startLocalSession(event, payload) {
   
   proc.onData((data) => {
     const contents = electronModule.webContents.fromId(session.webContentsId);
-    contents?.send("netcatty:data", { sessionId, data });
+    contents?.send("smbcatty:data", { sessionId, data });
   });
   
   proc.onExit((evt) => {
     sessions.delete(sessionId);
     const contents = electronModule.webContents.fromId(session.webContentsId);
-    contents?.send("netcatty:exit", { sessionId, ...evt });
+    contents?.send("smbcatty:exit", { sessionId, ...evt });
   });
   
   return { sessionId };
@@ -323,7 +323,7 @@ async function startTelnetSession(event, options) {
       
       if (cleanData.length > 0) {
         const contents = electronModule.webContents.fromId(session.webContentsId);
-        contents?.send("netcatty:data", { sessionId, data: cleanData.toString('binary') });
+        contents?.send("smbcatty:data", { sessionId, data: cleanData.toString('binary') });
       }
     });
 
@@ -337,7 +337,7 @@ async function startTelnetSession(event, options) {
         const session = sessions.get(sessionId);
         if (session) {
           const contents = electronModule.webContents.fromId(session.webContentsId);
-          contents?.send("netcatty:exit", { sessionId, exitCode: 1, error: err.message });
+          contents?.send("smbcatty:exit", { sessionId, exitCode: 1, error: err.message });
         }
         sessions.delete(sessionId);
       }
@@ -350,7 +350,7 @@ async function startTelnetSession(event, options) {
       const session = sessions.get(sessionId);
       if (session) {
         const contents = electronModule.webContents.fromId(session.webContentsId);
-        contents?.send("netcatty:exit", { sessionId, exitCode: hadError ? 1 : 0 });
+        contents?.send("smbcatty:exit", { sessionId, exitCode: hadError ? 1 : 0 });
       }
       sessions.delete(sessionId);
     });
@@ -428,13 +428,13 @@ async function startMoshSession(event, options) {
 
     proc.onData((data) => {
       const contents = electronModule.webContents.fromId(session.webContentsId);
-      contents?.send("netcatty:data", { sessionId, data });
+      contents?.send("smbcatty:data", { sessionId, data });
     });
 
     proc.onExit((evt) => {
       sessions.delete(sessionId);
       const contents = electronModule.webContents.fromId(session.webContentsId);
-      contents?.send("netcatty:exit", { sessionId, ...evt });
+      contents?.send("smbcatty:exit", { sessionId, ...evt });
     });
 
     return { sessionId };
@@ -515,20 +515,20 @@ async function startSerialSession(event, options) {
 
         serialPort.on('data', (data) => {
           const contents = electronModule.webContents.fromId(session.webContentsId);
-          contents?.send("netcatty:data", { sessionId, data: data.toString('binary') });
+          contents?.send("smbcatty:data", { sessionId, data: data.toString('binary') });
         });
 
         serialPort.on('error', (err) => {
           console.error(`[Serial] Port error: ${err.message}`);
           const contents = electronModule.webContents.fromId(session.webContentsId);
-          contents?.send("netcatty:exit", { sessionId, exitCode: 1, error: err.message });
+          contents?.send("smbcatty:exit", { sessionId, exitCode: 1, error: err.message });
           sessions.delete(sessionId);
         });
 
         serialPort.on('close', () => {
           console.log(`[Serial] Port closed`);
           const contents = electronModule.webContents.fromId(session.webContentsId);
-          contents?.send("netcatty:exit", { sessionId, exitCode: 0 });
+          contents?.send("smbcatty:exit", { sessionId, exitCode: 0 });
           sessions.delete(sessionId);
         });
 
@@ -629,16 +629,16 @@ function closeSession(event, payload) {
  * Register IPC handlers for terminal operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:local:start", startLocalSession);
-  ipcMain.handle("netcatty:telnet:start", startTelnetSession);
-  ipcMain.handle("netcatty:mosh:start", startMoshSession);
-  ipcMain.handle("netcatty:serial:start", startSerialSession);
-  ipcMain.handle("netcatty:serial:list", listSerialPorts);
-  ipcMain.handle("netcatty:local:defaultShell", getDefaultShell);
-  ipcMain.handle("netcatty:local:validatePath", validatePath);
-  ipcMain.on("netcatty:write", writeToSession);
-  ipcMain.on("netcatty:resize", resizeSession);
-  ipcMain.on("netcatty:close", closeSession);
+  ipcMain.handle("smbcatty:local:start", startLocalSession);
+  ipcMain.handle("smbcatty:telnet:start", startTelnetSession);
+  ipcMain.handle("smbcatty:mosh:start", startMoshSession);
+  ipcMain.handle("smbcatty:serial:start", startSerialSession);
+  ipcMain.handle("smbcatty:serial:list", listSerialPorts);
+  ipcMain.handle("smbcatty:local:defaultShell", getDefaultShell);
+  ipcMain.handle("smbcatty:local:validatePath", validatePath);
+  ipcMain.on("smbcatty:write", writeToSession);
+  ipcMain.on("smbcatty:resize", resizeSession);
+  ipcMain.on("smbcatty:close", closeSession);
 }
 
 /**

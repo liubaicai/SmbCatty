@@ -13,20 +13,20 @@ type TerminalBackendApi = {
   localAvailable: () => boolean;
   serialAvailable: () => boolean;
   execAvailable: () => boolean;
-  startSSHSession: (options: NetcattySSHOptions) => Promise<string>;
+  startSSHSession: (options: SmbCattySSHOptions) => Promise<string>;
   startTelnetSession: (
-    options: Parameters<NonNullable<NetcattyBridge["startTelnetSession"]>>[0],
+    options: Parameters<NonNullable<SmbCattyBridge["startTelnetSession"]>>[0],
   ) => Promise<string>;
   startMoshSession: (
-    options: Parameters<NonNullable<NetcattyBridge["startMoshSession"]>>[0],
+    options: Parameters<NonNullable<SmbCattyBridge["startMoshSession"]>>[0],
   ) => Promise<string>;
   startLocalSession: (
-    options: Parameters<NonNullable<NetcattyBridge["startLocalSession"]>>[0],
+    options: Parameters<NonNullable<SmbCattyBridge["startLocalSession"]>>[0],
   ) => Promise<string>;
   startSerialSession: (
-    options: Parameters<NonNullable<NetcattyBridge["startSerialSession"]>>[0],
+    options: Parameters<NonNullable<SmbCattyBridge["startSerialSession"]>>[0],
   ) => Promise<string>;
-  execCommand: (options: Parameters<NetcattyBridge["execCommand"]>[0]) => Promise<{
+  execCommand: (options: Parameters<SmbCattyBridge["execCommand"]>[0]) => Promise<{
     stdout?: string;
     stderr?: string;
   }>;
@@ -205,7 +205,7 @@ export const createTerminalSessionStarters = (ctx: TerminalSessionStartersContex
     if (!ctx.terminalBackend.backendAvailable()) {
       ctx.setError("Native SSH bridge unavailable. Launch via Electron app.");
       term.writeln(
-        "\r\n[netcatty SSH bridge unavailable. Please run the desktop build to connect.]",
+        "\r\n[smbcatty SSH bridge unavailable. Please run the desktop build to connect.]",
       );
       ctx.updateStatus("disconnected");
       return;
@@ -255,7 +255,7 @@ export const createTerminalSessionStarters = (ctx: TerminalSessionStartersContex
         }
       : undefined;
 
-    const jumpHosts = ctx.resolvedChainHosts.map<NetcattyJumpHost>((jumpHost) => {
+    const jumpHosts = ctx.resolvedChainHosts.map<SmbCattyJumpHost>((jumpHost) => {
       const jumpAuth = resolveHostAuth({
         host: jumpHost,
         keys: ctx.keys,

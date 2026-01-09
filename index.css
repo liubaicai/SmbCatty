@@ -112,7 +112,7 @@ body {
   color: hsl(var(--foreground));
 }
 
-.netcatty-shell {
+.smbcatty-shell {
   position: relative;
   background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 60%, hsl(var(--background) / 0.9) 100%);
 }

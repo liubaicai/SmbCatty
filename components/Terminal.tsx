@@ -1008,7 +1008,7 @@ const TerminalComponent: React.FC<TerminalProps> = ({
               : undefined;
 
             // Build jump hosts array if host chain is configured
-            let jumpHosts: NetcattyJumpHost[] | undefined;
+            let jumpHosts: SmbCattyJumpHost[] | undefined;
             if (host.hostChain?.hostIds && host.hostChain.hostIds.length > 0) {
               jumpHosts = host.hostChain.hostIds
                 .map((hostId) => allHosts.find((h) => h.id === hostId))

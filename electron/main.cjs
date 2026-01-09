@@ -1,5 +1,5 @@
 /**
- * Netcatty Electron Main Process
+ * SmbCatty Electron Main Process
  * 
  * This is the main entry point for the Electron application.
  * All major functionality has been extracted into separate bridge modules:
@@ -80,8 +80,8 @@ const windowManager = require("./bridges/windowManager.cjs");
 
 // GPU settings
 // NOTE: Do not disable Chromium sandbox by default.
-// If you need to debug with sandbox disabled, set NETCATTY_NO_SANDBOX=1.
-if (process.env.NETCATTY_NO_SANDBOX === "1") {
+// If you need to debug with sandbox disabled, set SMBCATTY_NO_SANDBOX=1.
+if (process.env.SMBCATTY_NO_SANDBOX === "1") {
   app.commandLine.appendSwitch("no-sandbox");
 }
 // Force hardware acceleration even on blocklisted GPUs (macs sometimes fall back to software)
@@ -258,7 +258,7 @@ function focusMainWindow() {
 // Shared state
 const sessions = new Map();
 const sftpClients = new Map();
-const keyRoot = path.join(os.homedir(), ".netcatty", "keys");
+const keyRoot = path.join(os.homedir(), ".smbcatty", "keys");
 let cloudSyncSessionPassword = null;
 const CLOUD_SYNC_PASSWORD_FILE = "netcatty_cloud_sync_master_password_v1";
 
@@ -374,7 +374,7 @@ const registerBridges = (win) => {
   cloudSyncBridge.registerHandlers(ipcMain);
 
   // Settings window handler
-  ipcMain.handle("netcatty:settings:open", async () => {
+  ipcMain.handle("smbcatty:settings:open", async () => {
     try {
       await windowManager.openSettingsWindow(electronModule, {
         preload,
@@ -392,7 +392,7 @@ const registerBridges = (win) => {
   });
 
   // Cloud sync master password (stored in-memory + persisted via safeStorage)
-  ipcMain.handle("netcatty:cloudSync:session:setPassword", async (_event, password) => {
+  ipcMain.handle("smbcatty:cloudSync:session:setPassword", async (_event, password) => {
     cloudSyncSessionPassword = typeof password === "string" && password.length ? password : null;
     if (cloudSyncSessionPassword) {
       persistCloudSyncPassword(cloudSyncSessionPassword);
@@ -402,21 +402,21 @@ const registerBridges = (win) => {
     return true;
   });
 
-  ipcMain.handle("netcatty:cloudSync:session:getPassword", async () => {
+  ipcMain.handle("smbcatty:cloudSync:session:getPassword", async () => {
     if (cloudSyncSessionPassword) return cloudSyncSessionPassword;
     const persisted = readPersistedCloudSyncPassword();
     cloudSyncSessionPassword = persisted;
     return persisted;
   });
 
-  ipcMain.handle("netcatty:cloudSync:session:clearPassword", async () => {
+  ipcMain.handle("smbcatty:cloudSync:session:clearPassword", async () => {
     cloudSyncSessionPassword = null;
     clearPersistedCloudSyncPassword();
     return true;
   });
 
   // Open external URL in default browser
-  ipcMain.handle("netcatty:openExternal", async (_event, url) => {
+  ipcMain.handle("smbcatty:openExternal", async (_event, url) => {
     const { shell } = electronModule;
     if (url && typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
       await shell.openExternal(url);
@@ -424,7 +424,7 @@ const registerBridges = (win) => {
   });
 
   // App information for About/Application screens
-  ipcMain.handle("netcatty:app:getInfo", async () => {
+  ipcMain.handle("smbcatty:app:getInfo", async () => {
     return {
       name: app.getName(),
       version: app.getVersion(),
@@ -433,7 +433,7 @@ const registerBridges = (win) => {
   });
 
   // Select an application from system file picker
-  ipcMain.handle("netcatty:selectApplication", async () => {
+  ipcMain.handle("smbcatty:selectApplication", async () => {
     const { dialog } = electronModule;
     
     let filters = [];
@@ -469,7 +469,7 @@ const registerBridges = (win) => {
   });
 
   // Open a file with a specific application
-  ipcMain.handle("netcatty:openWithApplication", async (_event, { filePath, appPath }) => {
+  ipcMain.handle("smbcatty:openWithApplication", async (_event, { filePath, appPath }) => {
     const { shell, spawn } = electronModule;
     const { spawn: cpSpawn } = require("node:child_process");
     
@@ -488,7 +488,7 @@ const registerBridges = (win) => {
   });
 
   // Download SFTP file to temp and return local path
-  ipcMain.handle("netcatty:sftp:downloadToTemp", async (_event, { sftpId, remotePath, fileName }) => {
+  ipcMain.handle("smbcatty:sftp:downloadToTemp", async (_event, { sftpId, remotePath, fileName }) => {
     const client = require("./bridges/sftpBridge.cjs");
     const tempDir = os.tmpdir();
     const tempFileName = `netcatty_${Date.now()}_${fileName}`;
@@ -537,12 +537,12 @@ async function createWindow() {
 }
 
 function showStartupError(err) {
-  const title = "Netcatty";
+  const title = "SmbCatty";
   const code = err && typeof err === "object" ? err.code : null;
   const message =
     code === "ENOENT"
-      ? "Renderer files are missing. Please reinstall or rebuild Netcatty."
-      : "Failed to load the UI. Please relaunch Netcatty.";
+      ? "Renderer files are missing. Please reinstall or rebuild SmbCatty."
+      : "Failed to load the UI. Please relaunch SmbCatty.";
 
   try {
     electronModule.dialog?.showErrorBox?.(title, message);

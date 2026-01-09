@@ -15,7 +15,7 @@ type AppInfo = {
   platform?: string;
 };
 
-const REPO_URL = "https://github.com/binaricat/Netcatty";
+const REPO_URL = "https://github.com/binaricat/SmbCatty";
 
 const buildIssueUrl = (appInfo: AppInfo) => {
   const title = "Bug: ";
@@ -67,7 +67,7 @@ export default function SettingsApplicationTab() {
   const { t } = useI18n();
   const { openExternal, getApplicationInfo } = useApplicationBackend();
   const { updateState, checkNow, openReleasePage } = useUpdateCheck();
-  const [appInfo, setAppInfo] = useState<AppInfo>({ name: "Netcatty", version: "" });
+  const [appInfo, setAppInfo] = useState<AppInfo>({ name: "SmbCatty", version: "" });
   const [lastCheckResult, setLastCheckResult] = useState<'none' | 'available' | 'upToDate'>('none');
   const [hasAutoChecked, setHasAutoChecked] = useState(false);
 

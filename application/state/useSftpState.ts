@@ -11,7 +11,7 @@ import {
   TransferTask,
 } from "../../domain/models";
 import { logger } from "../../lib/logger";
-import { netcattyBridge } from "../../infrastructure/services/netcattyBridge";
+import { smbcattyBridge } from "../../infrastructure/services/smbcattyBridge";
 import { resolveHostAuth } from "../../domain/sshAuth";
 
 // Helper functions
@@ -527,7 +527,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	      // Clear all SFTP sessions
 	      sessionsRef.forEach(async (sftpId) => {
 	        try {
-	          await netcattyBridge.get()?.closeSftp(sftpId);
+	          await smbcattyBridge.get()?.closeSftp(sftpId);
 	        } catch {
 	          // Ignore errors when closing SFTP sessions during cleanup
 	        }
@@ -612,7 +612,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
   const listLocalFiles = useCallback(
     async (path: string): Promise<SftpFileEntry[]> => {
-      const rawFiles = await netcattyBridge.get()?.listLocalDir?.(path);
+      const rawFiles = await smbcattyBridge.get()?.listLocalDir?.(path);
       if (!rawFiles) {
         // Fallback mock for development
         return getMockLocalFiles(path);
@@ -636,7 +636,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
   const listRemoteFiles = useCallback(
     async (sftpId: string, path: string): Promise<SftpFileEntry[]> => {
-      const rawFiles = await netcattyBridge.get()?.listSftp(sftpId, path);
+      const rawFiles = await smbcattyBridge.get()?.listSftp(sftpId, path);
       if (!rawFiles) return [];
 
       return rawFiles.map((f) => {
@@ -703,7 +703,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         );
 	        if (oldSftpId) {
 	          try {
-	            await netcattyBridge.get()?.closeSftp(oldSftpId);
+	            await smbcattyBridge.get()?.closeSftp(oldSftpId);
 	          } catch {
 	            // Ignore errors when closing stale SFTP sessions
 	          }
@@ -714,7 +714,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       if (host === "local") {
 	        // Local filesystem connection
 	        // Try to get home directory from backend, fallback to platform-specific default
-	        let homeDir = await netcattyBridge.get()?.getHomeDir?.();
+	        let homeDir = await smbcattyBridge.get()?.getHomeDir?.();
 	        if (!homeDir) {
 	          // Detect platform and use appropriate default
 	          const isWindows = navigator.platform.toLowerCase().includes("win");
@@ -787,7 +787,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
 	        try {
 	          const credentials = getHostCredentials(host);
-            const bridge = netcattyBridge.get();
+            const bridge = smbcattyBridge.get();
             const openSftp = bridge?.openSftp;
             if (!openSftp) throw new Error("SFTP bridge unavailable");
 
@@ -842,7 +842,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
 	          // Try to get home directory, default to "/"
 	          let startPath = "/";
-	          const statSftp = netcattyBridge.get()?.statSftp;
+	          const statSftp = smbcattyBridge.get()?.statSftp;
 	          if (statSftp) {
             const candidates: string[] = [];
             if (credentials.username === "root") {
@@ -869,7 +869,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	            if (credentials.username === "root") {
 	              // Root user's home is /root, not /home/root
 	              try {
-	                const rootFiles = await netcattyBridge.get()?.listSftp(
+	                const rootFiles = await smbcattyBridge.get()?.listSftp(
 	                  sftpId,
 	                  "/root",
 	                );
@@ -879,7 +879,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
               }
 	            } else if (credentials.username) {
 	              try {
-	                const homeFiles = await netcattyBridge.get()?.listSftp(
+	                const homeFiles = await smbcattyBridge.get()?.listSftp(
 	                  sftpId,
 	                  `/home/${credentials.username}`,
 	                );
@@ -889,7 +889,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
               }
 	              if (startPath === "/") {
 	                try {
-	                  const rootFiles = await netcattyBridge.get()?.listSftp(
+	                  const rootFiles = await smbcattyBridge.get()?.listSftp(
 	                    sftpId,
 	                    "/root",
 	                  );
@@ -900,7 +900,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
               }
             } else {
 	              try {
-	                const rootFiles = await netcattyBridge.get()?.listSftp(
+	                const rootFiles = await smbcattyBridge.get()?.listSftp(
 	                  sftpId,
 	                  "/root",
 	                );
@@ -1022,7 +1022,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	        const sftpId = sftpSessionsRef.current.get(pane.connection.id);
 	        if (sftpId) {
 	          try {
-	            await netcattyBridge.get()?.closeSftp(sftpId);
+	            await smbcattyBridge.get()?.closeSftp(sftpId);
 	          } catch {
 	            // Ignore errors when closing SFTP session during disconnect
 	          }
@@ -1766,14 +1766,14 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
 	      try {
 	        if (pane.connection.isLocal) {
-	          await netcattyBridge.get()?.mkdirLocal?.(fullPath);
+	          await smbcattyBridge.get()?.mkdirLocal?.(fullPath);
 	        } else {
 	          const sftpId = sftpSessionsRef.current.get(pane.connection.id);
 	          if (!sftpId) {
 	            handleSessionError(side, new Error("SFTP session not found"));
 	            return;
 	          }
-	          await netcattyBridge.get()?.mkdirSftp(sftpId, fullPath);
+	          await smbcattyBridge.get()?.mkdirSftp(sftpId, fullPath);
 	        }
 	        await refresh(side);
       } catch (err) {
@@ -1798,14 +1798,14 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	          const fullPath = joinPath(pane.connection.currentPath, name);
 
 	          if (pane.connection.isLocal) {
-	            await netcattyBridge.get()?.deleteLocalFile?.(fullPath);
+	            await smbcattyBridge.get()?.deleteLocalFile?.(fullPath);
 	          } else {
 	            const sftpId = sftpSessionsRef.current.get(pane.connection.id);
 	            if (!sftpId) {
 	              handleSessionError(side, new Error("SFTP session not found"));
 	              return;
 	            }
-	            await netcattyBridge.get()?.deleteSftp?.(sftpId, fullPath);
+	            await smbcattyBridge.get()?.deleteSftp?.(sftpId, fullPath);
 	          }
 	        }
 	        await refresh(side);
@@ -1831,14 +1831,14 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
 	      try {
 	        if (pane.connection.isLocal) {
-	          await netcattyBridge.get()?.renameLocalFile?.(oldPath, newPath);
+	          await smbcattyBridge.get()?.renameLocalFile?.(oldPath, newPath);
 	        } else {
 	          const sftpId = sftpSessionsRef.current.get(pane.connection.id);
 	          if (!sftpId) {
 	            handleSessionError(side, new Error("SFTP session not found"));
 	            return;
 	          }
-	          await netcattyBridge.get()?.renameSftp?.(sftpId, oldPath, newPath);
+	          await smbcattyBridge.get()?.renameSftp?.(sftpId, oldPath, newPath);
 	        }
 	        await refresh(side);
       } catch (err) {
@@ -1889,10 +1889,10 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
           try {
 	            const fullPath = joinPath(sourcePath, file.name);
 	            if (sourcePane.connection!.isLocal) {
-	              const stat = await netcattyBridge.get()?.statLocal?.(fullPath);
+	              const stat = await smbcattyBridge.get()?.statLocal?.(fullPath);
 	              if (stat) fileSize = stat.size;
 	            } else if (sourceSftpId) {
-	              const stat = await netcattyBridge.get()?.statSftp?.(
+	              const stat = await smbcattyBridge.get()?.statSftp?.(
 	                sourceSftpId,
 	                fullPath,
 	              );
@@ -1952,10 +1952,10 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	          : sftpSessionsRef.current.get(sourcePane.connection!.id);
 
 	        if (sourcePane.connection?.isLocal) {
-	          const stat = await netcattyBridge.get()?.statLocal?.(task.sourcePath);
+	          const stat = await smbcattyBridge.get()?.statLocal?.(task.sourcePath);
 	          if (stat) actualFileSize = stat.size;
 	        } else if (sourceSftpId) {
-	          const stat = await netcattyBridge.get()?.statSftp?.(
+	          const stat = await smbcattyBridge.get()?.statSftp?.(
 	            sourceSftpId,
 	            task.sourcePath,
 	          );
@@ -1975,7 +1975,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
           : 256 * 1024; // 256KB default for files
 
 	    // Check if streaming transfer is available (will provide real progress)
-	    const hasStreamingTransfer = !!netcattyBridge.get()?.startStreamTransfer;
+	    const hasStreamingTransfer = !!smbcattyBridge.get()?.startStreamTransfer;
 
     updateTask({
       status: "transferring",
@@ -2008,15 +2008,15 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         // Get source file stat for accurate size and mtime
 	        try {
 	          if (sourcePane.connection?.isLocal) {
-	            const stat = await netcattyBridge.get()?.statLocal?.(task.sourcePath);
+	            const stat = await smbcattyBridge.get()?.statLocal?.(task.sourcePath);
 	            if (stat) {
 	              sourceStat = {
 	                size: stat.size,
 	                mtime: stat.lastModified || Date.now(),
 	              };
 	            }
-	          } else if (sourceSftpId && netcattyBridge.get()?.statSftp) {
-	            const stat = await netcattyBridge.get()!.statSftp!(
+	          } else if (sourceSftpId && smbcattyBridge.get()?.statSftp) {
+	            const stat = await smbcattyBridge.get()!.statSftp!(
 	              sourceSftpId,
 	              task.sourcePath,
 	            );
@@ -2034,7 +2034,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         // Get target file stat to check for conflict
 	        try {
 	          if (targetPane.connection?.isLocal) {
-	            const stat = await netcattyBridge.get()?.statLocal?.(task.targetPath);
+	            const stat = await smbcattyBridge.get()?.statLocal?.(task.targetPath);
 	            if (stat) {
 	              targetExists = true;
 	              existingStat = {
@@ -2042,8 +2042,8 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	                mtime: stat.lastModified || Date.now(),
 	              };
 	            }
-	          } else if (targetSftpId && netcattyBridge.get()?.statSftp) {
-	            const stat = await netcattyBridge.get()!.statSftp!(
+	          } else if (targetSftpId && smbcattyBridge.get()?.statSftp) {
+	            const stat = await smbcattyBridge.get()!.statSftp!(
 	              targetSftpId,
 	              task.targetPath,
 	            );
@@ -2148,7 +2148,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
     targetIsLocal: boolean,
 	  ): Promise<void> => {
 	    // Try to use streaming transfer if available
-	    if (netcattyBridge.get()?.startStreamTransfer) {
+	    if (smbcattyBridge.get()?.startStreamTransfer) {
 	      return new Promise((resolve, reject) => {
 	        const options = {
 	          transferId: task.id,
@@ -2189,7 +2189,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	          reject(new Error(error));
 	        };
 
-	        netcattyBridge.require().startStreamTransfer!(
+	        smbcattyBridge.require().startStreamTransfer!(
 	          options,
 	          onProgress,
 	          onComplete,
@@ -2204,17 +2204,17 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	    // Read from source
 	    if (sourceIsLocal) {
 	      content =
-	        (await netcattyBridge.get()?.readLocalFile?.(task.sourcePath)) ||
+	        (await smbcattyBridge.get()?.readLocalFile?.(task.sourcePath)) ||
 	        new ArrayBuffer(0);
 	    } else if (sourceSftpId) {
-	      if (netcattyBridge.get()?.readSftpBinary) {
-	        content = await netcattyBridge.get()!.readSftpBinary!(
+	      if (smbcattyBridge.get()?.readSftpBinary) {
+	        content = await smbcattyBridge.get()!.readSftpBinary!(
 	          sourceSftpId,
 	          task.sourcePath,
 	        );
 	      } else {
 	        content =
-	          (await netcattyBridge.get()?.readSftp(sourceSftpId, task.sourcePath)) || "";
+	          (await smbcattyBridge.get()?.readSftp(sourceSftpId, task.sourcePath)) || "";
 	      }
 	    } else {
 	      throw new Error("No source connection");
@@ -2223,17 +2223,17 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	    // Write to target
 	    if (targetIsLocal) {
 	      if (content instanceof ArrayBuffer) {
-	        await netcattyBridge.get()?.writeLocalFile?.(task.targetPath, content);
+	        await smbcattyBridge.get()?.writeLocalFile?.(task.targetPath, content);
 	      } else {
 	        const encoder = new TextEncoder();
-	        await netcattyBridge.get()?.writeLocalFile?.(
+	        await smbcattyBridge.get()?.writeLocalFile?.(
 	          task.targetPath,
 	          encoder.encode(content).buffer,
 	        );
 	      }
 	    } else if (targetSftpId) {
-	      if (content instanceof ArrayBuffer && netcattyBridge.get()?.writeSftpBinary) {
-	        await netcattyBridge.get()!.writeSftpBinary!(
+	      if (content instanceof ArrayBuffer && smbcattyBridge.get()?.writeSftpBinary) {
+	        await smbcattyBridge.get()!.writeSftpBinary!(
 	          targetSftpId,
 	          task.targetPath,
 	          content,
@@ -2243,7 +2243,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	          content instanceof ArrayBuffer
 	            ? new TextDecoder().decode(content)
 	            : content;
-	        await netcattyBridge.get()?.writeSftp(targetSftpId, task.targetPath, text);
+	        await smbcattyBridge.get()?.writeSftp(targetSftpId, task.targetPath, text);
 	      }
 	    } else {
 	      throw new Error("No target connection");
@@ -2260,9 +2260,9 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
   ) => {
 	    // Create target directory
 	    if (targetIsLocal) {
-	      await netcattyBridge.get()?.mkdirLocal?.(task.targetPath);
+	      await smbcattyBridge.get()?.mkdirLocal?.(task.targetPath);
 	    } else if (targetSftpId) {
-	      await netcattyBridge.get()?.mkdirSftp(targetSftpId, task.targetPath);
+	      await smbcattyBridge.get()?.mkdirSftp(targetSftpId, task.targetPath);
 	    }
 
     // List source directory
@@ -2333,9 +2333,9 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       setConflicts((prev) => prev.filter((c) => c.transferId !== transferId));
 
 	      // Cancel at backend level if streaming transfer is in progress
-	      if (netcattyBridge.get()?.cancelTransfer) {
+	      if (smbcattyBridge.get()?.cancelTransfer) {
 	        try {
-	          await netcattyBridge.get()!.cancelTransfer!(transferId);
+	          await smbcattyBridge.get()!.cancelTransfer!(transferId);
 	        } catch (err) {
 	          logger.warn("Failed to cancel transfer at backend:", err);
 	        }
@@ -2488,13 +2488,13 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 	      }
 	
 	      const sftpId = sftpSessionsRef.current.get(pane.connection.id);
-	      if (!sftpId || !netcattyBridge.get()?.chmodSftp) {
+	      if (!sftpId || !smbcattyBridge.get()?.chmodSftp) {
 	        handleSessionError(side, new Error("SFTP session not found"));
 	        return;
 	      }
 	
 	      try {
-	        await netcattyBridge.get()!.chmodSftp!(sftpId, filePath, mode);
+	        await smbcattyBridge.get()!.chmodSftp!(sftpId, filePath, mode);
 	        await refresh(side);
 	      } catch (err) {
         if (isSessionError(err)) {
@@ -2516,7 +2516,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       }
 
       if (pane.connection.isLocal) {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         if (bridge?.readLocalFile) {
           const buffer = await bridge.readLocalFile(filePath);
           return new TextDecoder().decode(buffer);
@@ -2529,7 +2529,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         throw new Error("SFTP session not found");
       }
 
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (!bridge) {
         throw new Error("Bridge not available");
       }
@@ -2548,7 +2548,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       }
 
       if (pane.connection.isLocal) {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         if (bridge?.readLocalFile) {
           return await bridge.readLocalFile(filePath);
         }
@@ -2560,7 +2560,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         throw new Error("SFTP session not found");
       }
 
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (!bridge?.readSftpBinary) {
         throw new Error("Binary file reading not supported");
       }
@@ -2579,7 +2579,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       }
 
       if (pane.connection.isLocal) {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         if (bridge?.writeLocalFile) {
           const data = new TextEncoder().encode(content);
           await bridge.writeLocalFile(filePath, data.buffer);
@@ -2593,7 +2593,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         throw new Error("SFTP session not found");
       }
 
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (!bridge) {
         throw new Error("Bridge not available");
       }
@@ -2611,7 +2611,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         throw new Error("No connection available");
       }
 
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (!bridge?.downloadSftpToTemp || !bridge?.openWithApplication) {
         throw new Error("System app opening not supported");
       }
@@ -2639,7 +2639,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
   // Select an application from system file picker
   const selectApplication = useCallback(
     async (): Promise<{ path: string; name: string } | null> => {
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (!bridge?.selectApplication) {
         return null;
       }

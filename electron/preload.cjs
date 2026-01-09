@@ -10,7 +10,7 @@ const authFailedListeners = new Map();
 const languageChangeListeners = new Set();
 const fullscreenChangeListeners = new Set();
 
-ipcRenderer.on("netcatty:data", (_event, payload) => {
+ipcRenderer.on("smbcatty:data", (_event, payload) => {
   const set = dataListeners.get(payload.sessionId);
   if (!set) return;
   set.forEach((cb) => {
@@ -22,7 +22,7 @@ ipcRenderer.on("netcatty:data", (_event, payload) => {
   });
 });
 
-ipcRenderer.on("netcatty:exit", (_event, payload) => {
+ipcRenderer.on("smbcatty:exit", (_event, payload) => {
   const set = exitListeners.get(payload.sessionId);
   if (set) {
     set.forEach((cb) => {
@@ -38,7 +38,7 @@ ipcRenderer.on("netcatty:exit", (_event, payload) => {
 });
 
 // Chain progress events (for jump host connections)
-ipcRenderer.on("netcatty:chain:progress", (_event, payload) => {
+ipcRenderer.on("smbcatty:chain:progress", (_event, payload) => {
   const { hop, total, label, status } = payload;
   // Notify all registered chain progress listeners
   chainProgressListeners.forEach((cb) => {
@@ -50,7 +50,7 @@ ipcRenderer.on("netcatty:chain:progress", (_event, payload) => {
   });
 });
 
-ipcRenderer.on("netcatty:languageChanged", (_event, language) => {
+ipcRenderer.on("smbcatty:languageChanged", (_event, language) => {
   languageChangeListeners.forEach((cb) => {
     try {
       cb(language);
@@ -60,7 +60,7 @@ ipcRenderer.on("netcatty:languageChanged", (_event, language) => {
   });
 });
 
-ipcRenderer.on("netcatty:window:fullscreen-changed", (_event, isFullscreen) => {
+ipcRenderer.on("smbcatty:window:fullscreen-changed", (_event, isFullscreen) => {
   fullscreenChangeListeners.forEach((cb) => {
     try {
       cb(isFullscreen);
@@ -73,7 +73,7 @@ ipcRenderer.on("netcatty:window:fullscreen-changed", (_event, isFullscreen) => {
 
 
 // Authentication failed events
-ipcRenderer.on("netcatty:auth:failed", (_event, payload) => {
+ipcRenderer.on("smbcatty:auth:failed", (_event, payload) => {
   const set = authFailedListeners.get(payload.sessionId);
   if (set) {
     set.forEach((cb) => {
@@ -87,7 +87,7 @@ ipcRenderer.on("netcatty:auth:failed", (_event, payload) => {
 });
 
 // Transfer progress events
-ipcRenderer.on("netcatty:transfer:progress", (_event, payload) => {
+ipcRenderer.on("smbcatty:transfer:progress", (_event, payload) => {
   const cb = transferProgressListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -98,7 +98,7 @@ ipcRenderer.on("netcatty:transfer:progress", (_event, payload) => {
   }
 });
 
-ipcRenderer.on("netcatty:transfer:complete", (_event, payload) => {
+ipcRenderer.on("smbcatty:transfer:complete", (_event, payload) => {
   const cb = transferCompleteListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -113,7 +113,7 @@ ipcRenderer.on("netcatty:transfer:complete", (_event, payload) => {
   transferErrorListeners.delete(payload.transferId);
 });
 
-ipcRenderer.on("netcatty:transfer:error", (_event, payload) => {
+ipcRenderer.on("smbcatty:transfer:error", (_event, payload) => {
   const cb = transferErrorListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -128,7 +128,7 @@ ipcRenderer.on("netcatty:transfer:error", (_event, payload) => {
   transferErrorListeners.delete(payload.transferId);
 });
 
-ipcRenderer.on("netcatty:transfer:cancelled", (_event, payload) => {
+ipcRenderer.on("smbcatty:transfer:cancelled", (_event, payload) => {
   // Just cleanup listeners, the UI already knows it's cancelled
   transferProgressListeners.delete(payload.transferId);
   transferCompleteListeners.delete(payload.transferId);
@@ -140,7 +140,7 @@ const uploadProgressListeners = new Map();
 const uploadCompleteListeners = new Map();
 const uploadErrorListeners = new Map();
 
-ipcRenderer.on("netcatty:upload:progress", (_event, payload) => {
+ipcRenderer.on("smbcatty:upload:progress", (_event, payload) => {
   const cb = uploadProgressListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -151,7 +151,7 @@ ipcRenderer.on("netcatty:upload:progress", (_event, payload) => {
   }
 });
 
-ipcRenderer.on("netcatty:upload:complete", (_event, payload) => {
+ipcRenderer.on("smbcatty:upload:complete", (_event, payload) => {
   const cb = uploadCompleteListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -166,7 +166,7 @@ ipcRenderer.on("netcatty:upload:complete", (_event, payload) => {
   uploadErrorListeners.delete(payload.transferId);
 });
 
-ipcRenderer.on("netcatty:upload:error", (_event, payload) => {
+ipcRenderer.on("smbcatty:upload:error", (_event, payload) => {
   const cb = uploadErrorListeners.get(payload.transferId);
   if (cb) {
     try {
@@ -184,7 +184,7 @@ ipcRenderer.on("netcatty:upload:error", (_event, payload) => {
 // Port forwarding status listeners
 const portForwardStatusListeners = new Map();
 
-ipcRenderer.on("netcatty:portforward:status", (_event, payload) => {
+ipcRenderer.on("smbcatty:portforward:status", (_event, payload) => {
   const { tunnelId, status, error } = payload;
   const callbacks = portForwardStatusListeners.get(tunnelId);
   if (callbacks) {
@@ -200,51 +200,51 @@ ipcRenderer.on("netcatty:portforward:status", (_event, payload) => {
 
 const api = {
   startSSHSession: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:start", options);
+    const result = await ipcRenderer.invoke("smbcatty:start", options);
     return result.sessionId;
   },
   startTelnetSession: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:telnet:start", options);
+    const result = await ipcRenderer.invoke("smbcatty:telnet:start", options);
     return result.sessionId;
   },
   startMoshSession: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:mosh:start", options);
+    const result = await ipcRenderer.invoke("smbcatty:mosh:start", options);
     return result.sessionId;
   },
   startLocalSession: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:local:start", options || {});
+    const result = await ipcRenderer.invoke("smbcatty:local:start", options || {});
     return result.sessionId;
   },
   startSerialSession: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:serial:start", options);
+    const result = await ipcRenderer.invoke("smbcatty:serial:start", options);
     return result.sessionId;
   },
   listSerialPorts: async () => {
-    return ipcRenderer.invoke("netcatty:serial:list");
+    return ipcRenderer.invoke("smbcatty:serial:list");
   },
   getDefaultShell: async () => {
-    return ipcRenderer.invoke("netcatty:local:defaultShell");
+    return ipcRenderer.invoke("smbcatty:local:defaultShell");
   },
   validatePath: async (path, type) => {
-    return ipcRenderer.invoke("netcatty:local:validatePath", { path, type });
+    return ipcRenderer.invoke("smbcatty:local:validatePath", { path, type });
   },
   writeToSession: (sessionId, data) => {
-    ipcRenderer.send("netcatty:write", { sessionId, data });
+    ipcRenderer.send("smbcatty:write", { sessionId, data });
   },
   execCommand: async (options) => {
-    return ipcRenderer.invoke("netcatty:ssh:exec", options);
+    return ipcRenderer.invoke("smbcatty:ssh:exec", options);
   },
   getSessionPwd: async (sessionId) => {
-    return ipcRenderer.invoke("netcatty:ssh:pwd", { sessionId });
+    return ipcRenderer.invoke("smbcatty:ssh:pwd", { sessionId });
   },
   generateKeyPair: async (options) => {
-    return ipcRenderer.invoke("netcatty:key:generate", options);
+    return ipcRenderer.invoke("smbcatty:key:generate", options);
   },
   resizeSession: (sessionId, cols, rows) => {
-    ipcRenderer.send("netcatty:resize", { sessionId, cols, rows });
+    ipcRenderer.send("smbcatty:resize", { sessionId, cols, rows });
   },
   closeSession: (sessionId) => {
-    ipcRenderer.send("netcatty:close", { sessionId });
+    ipcRenderer.send("smbcatty:close", { sessionId });
   },
   onSessionData: (sessionId, cb) => {
     if (!dataListeners.has(sessionId)) dataListeners.set(sessionId, new Set());
@@ -262,35 +262,35 @@ const api = {
     return () => authFailedListeners.get(sessionId)?.delete(cb);
   },
   openSftp: async (options) => {
-    const result = await ipcRenderer.invoke("netcatty:sftp:open", options);
+    const result = await ipcRenderer.invoke("smbcatty:sftp:open", options);
     return result.sftpId;
   },
   listSftp: async (sftpId, path) => {
-    return ipcRenderer.invoke("netcatty:sftp:list", { sftpId, path });
+    return ipcRenderer.invoke("smbcatty:sftp:list", { sftpId, path });
   },
   readSftp: async (sftpId, path) => {
-    return ipcRenderer.invoke("netcatty:sftp:read", { sftpId, path });
+    return ipcRenderer.invoke("smbcatty:sftp:read", { sftpId, path });
   },
   writeSftp: async (sftpId, path, content) => {
-    return ipcRenderer.invoke("netcatty:sftp:write", { sftpId, path, content });
+    return ipcRenderer.invoke("smbcatty:sftp:write", { sftpId, path, content });
   },
   closeSftp: async (sftpId) => {
-    return ipcRenderer.invoke("netcatty:sftp:close", { sftpId });
+    return ipcRenderer.invoke("smbcatty:sftp:close", { sftpId });
   },
   mkdirSftp: async (sftpId, path) => {
-    return ipcRenderer.invoke("netcatty:sftp:mkdir", { sftpId, path });
+    return ipcRenderer.invoke("smbcatty:sftp:mkdir", { sftpId, path });
   },
   deleteSftp: async (sftpId, path) => {
-    return ipcRenderer.invoke("netcatty:sftp:delete", { sftpId, path });
+    return ipcRenderer.invoke("smbcatty:sftp:delete", { sftpId, path });
   },
   renameSftp: async (sftpId, oldPath, newPath) => {
-    return ipcRenderer.invoke("netcatty:sftp:rename", { sftpId, oldPath, newPath });
+    return ipcRenderer.invoke("smbcatty:sftp:rename", { sftpId, oldPath, newPath });
   },
   statSftp: async (sftpId, path) => {
-    return ipcRenderer.invoke("netcatty:sftp:stat", { sftpId, path });
+    return ipcRenderer.invoke("smbcatty:sftp:stat", { sftpId, path });
   },
   chmodSftp: async (sftpId, path, mode) => {
-    return ipcRenderer.invoke("netcatty:sftp:chmod", { sftpId, path, mode });
+    return ipcRenderer.invoke("smbcatty:sftp:chmod", { sftpId, path, mode });
   },
   // Write binary with real-time progress callback
   writeSftpBinaryWithProgress: async (sftpId, path, content, transferId, onProgress, onComplete, onError) => {
@@ -299,7 +299,7 @@ const api = {
     if (onComplete) uploadCompleteListeners.set(transferId, onComplete);
     if (onError) uploadErrorListeners.set(transferId, onError);
     
-    return ipcRenderer.invoke("netcatty:sftp:writeBinaryWithProgress", { 
+    return ipcRenderer.invoke("smbcatty:sftp:writeBinaryWithProgress", { 
       sftpId, 
       path, 
       content, 
@@ -308,44 +308,44 @@ const api = {
   },
   // Local filesystem operations
   listLocalDir: async (path) => {
-    return ipcRenderer.invoke("netcatty:local:list", { path });
+    return ipcRenderer.invoke("smbcatty:local:list", { path });
   },
   readLocalFile: async (path) => {
-    return ipcRenderer.invoke("netcatty:local:read", { path });
+    return ipcRenderer.invoke("smbcatty:local:read", { path });
   },
   writeLocalFile: async (path, content) => {
-    return ipcRenderer.invoke("netcatty:local:write", { path, content });
+    return ipcRenderer.invoke("smbcatty:local:write", { path, content });
   },
   deleteLocalFile: async (path) => {
-    return ipcRenderer.invoke("netcatty:local:delete", { path });
+    return ipcRenderer.invoke("smbcatty:local:delete", { path });
   },
   renameLocalFile: async (oldPath, newPath) => {
-    return ipcRenderer.invoke("netcatty:local:rename", { oldPath, newPath });
+    return ipcRenderer.invoke("smbcatty:local:rename", { oldPath, newPath });
   },
   mkdirLocal: async (path) => {
-    return ipcRenderer.invoke("netcatty:local:mkdir", { path });
+    return ipcRenderer.invoke("smbcatty:local:mkdir", { path });
   },
   statLocal: async (path) => {
-    return ipcRenderer.invoke("netcatty:local:stat", { path });
+    return ipcRenderer.invoke("smbcatty:local:stat", { path });
   },
   getHomeDir: async () => {
-    return ipcRenderer.invoke("netcatty:local:homedir");
+    return ipcRenderer.invoke("smbcatty:local:homedir");
   },
   getSystemInfo: async () => {
-    return ipcRenderer.invoke("netcatty:system:info");
+    return ipcRenderer.invoke("smbcatty:system:info");
   },
   // Read system known_hosts file
   readKnownHosts: async () => {
-    return ipcRenderer.invoke("netcatty:known-hosts:read");
+    return ipcRenderer.invoke("smbcatty:known-hosts:read");
   },
   setTheme: async (theme) => {
-    return ipcRenderer.invoke("netcatty:setTheme", theme);
+    return ipcRenderer.invoke("smbcatty:setTheme", theme);
   },
   setBackgroundColor: async (color) => {
-    return ipcRenderer.invoke("netcatty:setBackgroundColor", color);
+    return ipcRenderer.invoke("smbcatty:setBackgroundColor", color);
   },
   setLanguage: async (language) => {
-    return ipcRenderer.invoke("netcatty:setLanguage", language);
+    return ipcRenderer.invoke("smbcatty:setLanguage", language);
   },
   onLanguageChanged: (cb) => {
     languageChangeListeners.add(cb);
@@ -359,86 +359,86 @@ const api = {
     if (onComplete) transferCompleteListeners.set(transferId, onComplete);
     if (onError) transferErrorListeners.set(transferId, onError);
     
-    return ipcRenderer.invoke("netcatty:transfer:start", options);
+    return ipcRenderer.invoke("smbcatty:transfer:start", options);
   },
   cancelTransfer: async (transferId) => {
     // Cleanup listeners
     transferProgressListeners.delete(transferId);
     transferCompleteListeners.delete(transferId);
     transferErrorListeners.delete(transferId);
-    return ipcRenderer.invoke("netcatty:transfer:cancel", { transferId });
+    return ipcRenderer.invoke("smbcatty:transfer:cancel", { transferId });
   },
   // Window controls for custom title bar
-  windowMinimize: () => ipcRenderer.invoke("netcatty:window:minimize"),
-  windowMaximize: () => ipcRenderer.invoke("netcatty:window:maximize"),
-  windowClose: () => ipcRenderer.invoke("netcatty:window:close"),
-  windowIsMaximized: () => ipcRenderer.invoke("netcatty:window:isMaximized"),
-  windowIsFullscreen: () => ipcRenderer.invoke("netcatty:window:isFullscreen"),
+  windowMinimize: () => ipcRenderer.invoke("smbcatty:window:minimize"),
+  windowMaximize: () => ipcRenderer.invoke("smbcatty:window:maximize"),
+  windowClose: () => ipcRenderer.invoke("smbcatty:window:close"),
+  windowIsMaximized: () => ipcRenderer.invoke("smbcatty:window:isMaximized"),
+  windowIsFullscreen: () => ipcRenderer.invoke("smbcatty:window:isFullscreen"),
   onWindowFullScreenChanged: (cb) => {
     fullscreenChangeListeners.add(cb);
     return () => fullscreenChangeListeners.delete(cb);
   },
   
   // Settings window
-  openSettingsWindow: () => ipcRenderer.invoke("netcatty:settings:open"),
-  closeSettingsWindow: () => ipcRenderer.invoke("netcatty:settings:close"),
+  openSettingsWindow: () => ipcRenderer.invoke("smbcatty:settings:open"),
+  closeSettingsWindow: () => ipcRenderer.invoke("smbcatty:settings:close"),
 
   // Cross-window settings sync
-  notifySettingsChanged: (payload) => ipcRenderer.send("netcatty:settings:changed", payload),
+  notifySettingsChanged: (payload) => ipcRenderer.send("smbcatty:settings:changed", payload),
   onSettingsChanged: (callback) => {
     const handler = (_event, payload) => callback(payload);
-    ipcRenderer.on("netcatty:settings:changed", handler);
-    return () => ipcRenderer.removeListener("netcatty:settings:changed", handler);
+    ipcRenderer.on("smbcatty:settings:changed", handler);
+    return () => ipcRenderer.removeListener("smbcatty:settings:changed", handler);
   },
 
   // Cloud sync session (in-memory only, shared across windows)
   cloudSyncSetSessionPassword: (password) =>
-    ipcRenderer.invoke("netcatty:cloudSync:session:setPassword", password),
+    ipcRenderer.invoke("smbcatty:cloudSync:session:setPassword", password),
   cloudSyncGetSessionPassword: () =>
-    ipcRenderer.invoke("netcatty:cloudSync:session:getPassword"),
+    ipcRenderer.invoke("smbcatty:cloudSync:session:getPassword"),
   cloudSyncClearSessionPassword: () =>
-    ipcRenderer.invoke("netcatty:cloudSync:session:clearPassword"),
+    ipcRenderer.invoke("smbcatty:cloudSync:session:clearPassword"),
 
   // Cloud sync network operations (proxied via main process)
   cloudSyncWebdavInitialize: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:webdav:initialize", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:webdav:initialize", { config }),
   cloudSyncWebdavUpload: (config, syncedFile) =>
-    ipcRenderer.invoke("netcatty:cloudSync:webdav:upload", { config, syncedFile }),
+    ipcRenderer.invoke("smbcatty:cloudSync:webdav:upload", { config, syncedFile }),
   cloudSyncWebdavDownload: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:webdav:download", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:webdav:download", { config }),
   cloudSyncWebdavDelete: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:webdav:delete", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:webdav:delete", { config }),
 
   cloudSyncS3Initialize: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:s3:initialize", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:s3:initialize", { config }),
   cloudSyncS3Upload: (config, syncedFile) =>
-    ipcRenderer.invoke("netcatty:cloudSync:s3:upload", { config, syncedFile }),
+    ipcRenderer.invoke("smbcatty:cloudSync:s3:upload", { config, syncedFile }),
   cloudSyncS3Download: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:s3:download", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:s3:download", { config }),
   cloudSyncS3Delete: (config) =>
-    ipcRenderer.invoke("netcatty:cloudSync:s3:delete", { config }),
+    ipcRenderer.invoke("smbcatty:cloudSync:s3:delete", { config }),
   
   // Open URL in default browser
-  openExternal: (url) => ipcRenderer.invoke("netcatty:openExternal", url),
+  openExternal: (url) => ipcRenderer.invoke("smbcatty:openExternal", url),
 
   // App info
-  getAppInfo: () => ipcRenderer.invoke("netcatty:app:getInfo"),
+  getAppInfo: () => ipcRenderer.invoke("smbcatty:app:getInfo"),
 
   // Tell main process the renderer has mounted/painted (used to avoid initial blank screen).
-  rendererReady: () => ipcRenderer.send("netcatty:renderer:ready"),
+  rendererReady: () => ipcRenderer.send("smbcatty:renderer:ready"),
   
   // Port Forwarding API
   startPortForward: async (options) => {
-    return ipcRenderer.invoke("netcatty:portforward:start", options);
+    return ipcRenderer.invoke("smbcatty:portforward:start", options);
   },
   stopPortForward: async (tunnelId) => {
-    return ipcRenderer.invoke("netcatty:portforward:stop", { tunnelId });
+    return ipcRenderer.invoke("smbcatty:portforward:stop", { tunnelId });
   },
   getPortForwardStatus: async (tunnelId) => {
-    return ipcRenderer.invoke("netcatty:portforward:status", { tunnelId });
+    return ipcRenderer.invoke("smbcatty:portforward:status", { tunnelId });
   },
   listPortForwards: async () => {
-    return ipcRenderer.invoke("netcatty:portforward:list");
+    return ipcRenderer.invoke("smbcatty:portforward:list");
   },
   onPortForwardStatus: (tunnelId, cb) => {
     if (!portForwardStatusListeners.has(tunnelId)) {
@@ -466,54 +466,54 @@ const api = {
   cancelOAuthCallback: () => ipcRenderer.invoke("oauth:cancelCallback"),
 
   // GitHub Device Flow (proxied via main process to avoid CORS)
-  githubStartDeviceFlow: (options) => ipcRenderer.invoke("netcatty:github:deviceFlow:start", options),
-  githubPollDeviceFlowToken: (options) => ipcRenderer.invoke("netcatty:github:deviceFlow:poll", options),
+  githubStartDeviceFlow: (options) => ipcRenderer.invoke("smbcatty:github:deviceFlow:start", options),
+  githubPollDeviceFlowToken: (options) => ipcRenderer.invoke("smbcatty:github:deviceFlow:poll", options),
 
   // Google OAuth (proxied via main process to avoid CORS)
   googleExchangeCodeForTokens: (options) =>
-    ipcRenderer.invoke("netcatty:google:oauth:exchange", options),
+    ipcRenderer.invoke("smbcatty:google:oauth:exchange", options),
   googleRefreshAccessToken: (options) =>
-    ipcRenderer.invoke("netcatty:google:oauth:refresh", options),
+    ipcRenderer.invoke("smbcatty:google:oauth:refresh", options),
   googleGetUserInfo: (options) =>
-    ipcRenderer.invoke("netcatty:google:oauth:userinfo", options),
+    ipcRenderer.invoke("smbcatty:google:oauth:userinfo", options),
 
   // Google Drive API (proxied via main process to avoid CORS/COEP issues in renderer)
   googleDriveFindSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:google:drive:findSyncFile", options),
+    ipcRenderer.invoke("smbcatty:google:drive:findSyncFile", options),
   googleDriveCreateSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:google:drive:createSyncFile", options),
+    ipcRenderer.invoke("smbcatty:google:drive:createSyncFile", options),
   googleDriveUpdateSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:google:drive:updateSyncFile", options),
+    ipcRenderer.invoke("smbcatty:google:drive:updateSyncFile", options),
   googleDriveDownloadSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:google:drive:downloadSyncFile", options),
+    ipcRenderer.invoke("smbcatty:google:drive:downloadSyncFile", options),
   googleDriveDeleteSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:google:drive:deleteSyncFile", options),
+    ipcRenderer.invoke("smbcatty:google:drive:deleteSyncFile", options),
 
   // OneDrive OAuth + Graph (proxied via main process to avoid CORS)
   onedriveExchangeCodeForTokens: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:oauth:exchange", options),
+    ipcRenderer.invoke("smbcatty:onedrive:oauth:exchange", options),
   onedriveRefreshAccessToken: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:oauth:refresh", options),
+    ipcRenderer.invoke("smbcatty:onedrive:oauth:refresh", options),
   onedriveGetUserInfo: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:oauth:userinfo", options),
+    ipcRenderer.invoke("smbcatty:onedrive:oauth:userinfo", options),
   onedriveFindSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:drive:findSyncFile", options),
+    ipcRenderer.invoke("smbcatty:onedrive:drive:findSyncFile", options),
   onedriveUploadSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:drive:uploadSyncFile", options),
+    ipcRenderer.invoke("smbcatty:onedrive:drive:uploadSyncFile", options),
   onedriveDownloadSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:drive:downloadSyncFile", options),
+    ipcRenderer.invoke("smbcatty:onedrive:drive:downloadSyncFile", options),
   onedriveDeleteSyncFile: (options) =>
-    ipcRenderer.invoke("netcatty:onedrive:drive:deleteSyncFile", options),
+    ipcRenderer.invoke("smbcatty:onedrive:drive:deleteSyncFile", options),
 
   // File opener helpers (for "Open With" feature)
   selectApplication: () =>
-    ipcRenderer.invoke("netcatty:selectApplication"),
+    ipcRenderer.invoke("smbcatty:selectApplication"),
   openWithApplication: (filePath, appPath) =>
-    ipcRenderer.invoke("netcatty:openWithApplication", { filePath, appPath }),
+    ipcRenderer.invoke("smbcatty:openWithApplication", { filePath, appPath }),
   downloadSftpToTemp: (sftpId, remotePath, fileName) =>
-    ipcRenderer.invoke("netcatty:sftp:downloadToTemp", { sftpId, remotePath, fileName }),
+    ipcRenderer.invoke("smbcatty:sftp:downloadToTemp", { sftpId, remotePath, fileName }),
 };
 
 // Merge with existing netcatty (if any) to avoid stale objects on hot reload
-const existing = (typeof window !== "undefined" && window.netcatty) ? window.netcatty : {};
-contextBridge.exposeInMainWorld("netcatty", { ...existing, ...api });
+const existing = (typeof window !== "undefined" && window.smbcatty) ? window.smbcatty : {};
+contextBridge.exposeInMainWorld("smbcatty", { ...existing, ...api });

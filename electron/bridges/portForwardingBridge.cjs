@@ -33,7 +33,7 @@ async function startPortForward(event, payload) {
     
     const sendStatus = (status, error = null) => {
       if (!sender.isDestroyed()) {
-        sender.send("netcatty:portforward:status", { tunnelId, status, error });
+        sender.send("smbcatty:portforward:status", { tunnelId, status, error });
       }
     };
     
@@ -339,10 +339,10 @@ function stopAllPortForwards() {
  * Register IPC handlers for port forwarding operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:portforward:start", startPortForward);
-  ipcMain.handle("netcatty:portforward:stop", stopPortForward);
-  ipcMain.handle("netcatty:portforward:status", getPortForwardStatus);
-  ipcMain.handle("netcatty:portforward:list", listPortForwards);
+  ipcMain.handle("smbcatty:portforward:start", startPortForward);
+  ipcMain.handle("smbcatty:portforward:stop", stopPortForward);
+  ipcMain.handle("smbcatty:portforward:status", getPortForwardStatus);
+  ipcMain.handle("smbcatty:portforward:list", listPortForwards);
 }
 
 module.exports = {

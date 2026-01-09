@@ -37,7 +37,7 @@ import type { GitHubAdapter } from './adapters/GitHubAdapter';
 import type { GoogleDriveAdapter } from './adapters/GoogleDriveAdapter';
 import type { OneDriveAdapter } from './adapters/OneDriveAdapter';
 
-const SYNC_HISTORY_STORAGE_KEY = 'netcatty_sync_history_v1';
+const SYNC_HISTORY_STORAGE_KEY = 'smbcatty_sync_history_v1';
 
 // ============================================================================
 // Types

@@ -250,8 +250,8 @@ interface SFTPModalProps {
     publicKey?: string;
     keyId?: string;
     keySource?: 'generated' | 'imported';
-    proxy?: NetcattyProxyConfig;
-    jumpHosts?: NetcattyJumpHost[];
+    proxy?: SmbCattyProxyConfig;
+    jumpHosts?: SmbCattyJumpHost[];
   };
   open: boolean;
   onClose: () => void;
@@ -1157,7 +1157,7 @@ const SFTPModal: React.FC<SFTPModalProps> = ({
           const fullPath = joinPath(currentPath, file.name);
           if (isLocalSession) {
             // For local files, open directly
-            const bridge = (window as unknown as { netcatty?: NetcattyBridge }).netcatty;
+            const bridge = (window as unknown as { smbcatty?: SmbCattyBridge }).smbcatty;
             if (bridge?.openWithApplication) {
               await bridge.openWithApplication(fullPath, savedOpener.systemApp.path);
             }
@@ -1197,7 +1197,7 @@ const SFTPModal: React.FC<SFTPModalProps> = ({
         const fullPath = joinPath(currentPath, fileOpenerTarget.name);
         if (isLocalSession) {
           // For local files, open directly
-          const bridge = (window as unknown as { netcatty?: NetcattyBridge }).netcatty;
+          const bridge = (window as unknown as { smbcatty?: SmbCattyBridge }).smbcatty;
           if (bridge?.openWithApplication) {
             await bridge.openWithApplication(fullPath, systemApp.path);
           }

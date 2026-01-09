@@ -47,17 +47,17 @@ async function startTransfer(event, payload) {
       lastTransferred = transferred;
     }
     
-    sender.send("netcatty:transfer:progress", { transferId, transferred, speed, totalBytes: total });
+    sender.send("smbcatty:transfer:progress", { transferId, transferred, speed, totalBytes: total });
   };
   
   const sendComplete = () => {
     activeTransfers.delete(transferId);
-    sender.send("netcatty:transfer:complete", { transferId });
+    sender.send("smbcatty:transfer:complete", { transferId });
   };
   
   const sendError = (error) => {
     activeTransfers.delete(transferId);
-    sender.send("netcatty:transfer:error", { transferId, error: error.message || String(error) });
+    sender.send("smbcatty:transfer:error", { transferId, error: error.message || String(error) });
   };
   
   const isCancelled = () => activeTransfers.get(transferId)?.cancelled;
@@ -202,7 +202,7 @@ async function startTransfer(event, payload) {
   } catch (err) {
     if (err.message === 'Transfer cancelled') {
       activeTransfers.delete(transferId);
-      sender.send("netcatty:transfer:cancelled", { transferId });
+      sender.send("smbcatty:transfer:cancelled", { transferId });
     } else {
       sendError(err);
     }
@@ -233,8 +233,8 @@ async function cancelTransfer(event, payload) {
  * Register IPC handlers for transfer operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:transfer:start", startTransfer);
-  ipcMain.handle("netcatty:transfer:cancel", cancelTransfer);
+  ipcMain.handle("smbcatty:transfer:start", startTransfer);
+  ipcMain.handle("smbcatty:transfer:cancel", cancelTransfer);
 }
 
 module.exports = {

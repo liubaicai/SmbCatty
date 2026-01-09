@@ -736,7 +736,7 @@ const VaultViewInner: React.FC<VaultViewProps> = ({
         <div className="px-4 py-4 flex items-center gap-3">
           <AppLogo className="h-10 w-10 rounded-xl" />
           <div>
-            <p className="text-sm font-bold text-foreground">Netcatty</p>
+            <p className="text-sm font-bold text-foreground">SmbCatty</p>
           </div>
         </div>
 

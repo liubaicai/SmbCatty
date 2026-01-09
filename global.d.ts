@@ -3,7 +3,7 @@ import type { S3Config, SMBConfig, SyncedFile, WebDAVConfig } from "./domain/syn
 
 declare global {
 // Proxy configuration for SSH connections
-interface NetcattyProxyConfig {
+interface SmbCattyProxyConfig {
   type: 'http' | 'socks5';
   host: string;
   port: number;
@@ -12,7 +12,7 @@ interface NetcattyProxyConfig {
 }
 
 // Jump host configuration for SSH tunneling
-interface NetcattyJumpHost {
+interface SmbCattyJumpHost {
   hostname: string;
   port: number;
   username: string;
@@ -28,7 +28,7 @@ interface NetcattyJumpHost {
 
 // Host key information for verification
 // Reserved for future host key verification UI feature
-interface _NetcattyHostKeyInfo {
+interface _SmbCattyHostKeyInfo {
   hostname: string;
   port: number;
   keyType: string;
@@ -36,7 +36,7 @@ interface _NetcattyHostKeyInfo {
   publicKey?: string;
 }
 
-interface NetcattySSHOptions {
+interface SmbCattySSHOptions {
   sessionId?: string;
   hostname: string;
   username: string;
@@ -58,9 +58,9 @@ interface NetcattySSHOptions {
   // Environment variables to set in the remote shell
   env?: Record<string, string>;
   // Proxy configuration
-  proxy?: NetcattyProxyConfig;
+  proxy?: SmbCattyProxyConfig;
   // Jump hosts (bastion chain)
-  jumpHosts?: NetcattyJumpHost[];
+  jumpHosts?: SmbCattyJumpHost[];
   // SSH-level keepalive interval in seconds (0 = disabled)
   keepaliveInterval?: number;
 }
@@ -113,8 +113,8 @@ interface PortForwardStatusResult {
 
 type PortForwardStatusCallback = (status: 'inactive' | 'connecting' | 'active' | 'error', error?: string) => void;
 
-interface NetcattyBridge {
-  startSSHSession(options: NetcattySSHOptions): Promise<string>;
+interface SmbCattyBridge {
+  startSSHSession(options: SmbCattySSHOptions): Promise<string>;
   startTelnetSession?(options: {
     sessionId?: string;
     hostname: string;
@@ -186,7 +186,7 @@ interface NetcattyBridge {
   ): () => void;
   
   // SFTP operations
-  openSftp(options: NetcattySSHOptions): Promise<string>;
+  openSftp(options: SmbCattySSHOptions): Promise<string>;
   listSftp(sftpId: string, path: string): Promise<RemoteFile[]>;
   readSftp(sftpId: string, path: string): Promise<string>;
   readSftpBinary?(sftpId: string, path: string): Promise<ArrayBuffer>;
@@ -420,7 +420,7 @@ interface NetcattyBridge {
 }
 
 interface Window {
-  netcatty?: NetcattyBridge;
+  smbcatty?: SmbCattyBridge;
 }
 
 }

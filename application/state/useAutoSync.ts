@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useCloudSync } from './useCloudSync';
 import { useI18n } from '../i18n/I18nProvider';
 import { getCloudSyncManager } from '../../infrastructure/services/CloudSyncManager';
-import { netcattyBridge } from '../../infrastructure/services/netcattyBridge';
+import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
 import type { SyncPayload } from '../../domain/sync';
 import { toast } from '../../components/ui/toast';
 
@@ -92,7 +92,7 @@ export const useAutoSync = (config: AutoSyncConfig) => {
 
       // If another window unlocked, reuse the in-memory session password from main process.
       if (state.securityState !== 'UNLOCKED') {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         const sessionPassword = await bridge?.cloudSyncGetSessionPassword?.();
         if (sessionPassword) {
           const ok = await sync.unlock(sessionPassword);

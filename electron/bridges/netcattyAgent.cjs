@@ -1,5 +1,5 @@
 /**
- * Netcatty in-process SSH agent
+ * SmbCatty in-process SSH agent
  *
  * Implements ssh2's BaseAgent interface to support:
  * - OpenSSH certificate authentication (client cert + private key)
@@ -48,7 +48,7 @@ function normalizeBaseTypeForConversion(type) {
   return type.replace(/-cert-v0[01]@openssh\.com$/i, "");
 }
 
-class NetcattyAgent extends BaseAgent {
+class SmbCattyAgent extends BaseAgent {
   constructor(opts) {
     super();
     this._mode = opts.mode;
@@ -136,5 +136,5 @@ class NetcattyAgent extends BaseAgent {
 }
 
 module.exports = {
-  NetcattyAgent,
+  SmbCattyAgent,
 };

@@ -9,7 +9,7 @@ const os = require("node:os");
 const net = require("node:net");
 const SftpClient = require("ssh2-sftp-client");
 const { Client: SSHClient } = require("ssh2");
-const { NetcattyAgent } = require("./netcattyAgent.cjs");
+const { SmbCattyAgent } = require("./netcattyAgent.cjs");
 
 // SFTP clients storage - shared reference passed from main
 let sftpClients = null;
@@ -186,7 +186,7 @@ async function connectThroughChainForSftp(event, options, jumpHosts, targetHost,
 
       let authAgent = null;
       if (hasCertificate) {
-        authAgent = new NetcattyAgent({
+        authAgent = new SmbCattyAgent({
           mode: "certificate",
           webContents: event.sender,
           meta: {
@@ -339,7 +339,7 @@ async function openSftp(event, options) {
 
   let authAgent = null;
   if (hasCertificate) {
-    authAgent = new NetcattyAgent({
+    authAgent = new SmbCattyAgent({
       mode: "certificate",
       webContents: event.sender,
       meta: {
@@ -514,7 +514,7 @@ async function writeSftpBinaryWithProgress(event, payload) {
         }
         
         const contents = electronModule.webContents.fromId(event.sender.id);
-        contents?.send("netcatty:upload:progress", {
+        contents?.send("smbcatty:upload:progress", {
           transferId,
           transferred: transferredBytes,
           totalBytes,
@@ -532,12 +532,12 @@ async function writeSftpBinaryWithProgress(event, payload) {
     await client.put(readableStream, remotePath);
     
     const contents = electronModule.webContents.fromId(event.sender.id);
-    contents?.send("netcatty:upload:complete", { transferId });
+    contents?.send("smbcatty:upload:complete", { transferId });
     
     return { success: true, transferId };
   } catch (err) {
     const contents = electronModule.webContents.fromId(event.sender.id);
-    contents?.send("netcatty:upload:error", { transferId, error: err.message });
+    contents?.send("smbcatty:upload:error", { transferId, error: err.message });
     throw err;
   }
 }
@@ -638,17 +638,17 @@ async function chmodSftp(event, payload) {
  * Register IPC handlers for SFTP operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:sftp:open", openSftp);
-  ipcMain.handle("netcatty:sftp:list", listSftp);
-  ipcMain.handle("netcatty:sftp:read", readSftp);
-  ipcMain.handle("netcatty:sftp:write", writeSftp);
-  ipcMain.handle("netcatty:sftp:writeBinaryWithProgress", writeSftpBinaryWithProgress);
-  ipcMain.handle("netcatty:sftp:close", closeSftp);
-  ipcMain.handle("netcatty:sftp:mkdir", mkdirSftp);
-  ipcMain.handle("netcatty:sftp:delete", deleteSftp);
-  ipcMain.handle("netcatty:sftp:rename", renameSftp);
-  ipcMain.handle("netcatty:sftp:stat", statSftp);
-  ipcMain.handle("netcatty:sftp:chmod", chmodSftp);
+  ipcMain.handle("smbcatty:sftp:open", openSftp);
+  ipcMain.handle("smbcatty:sftp:list", listSftp);
+  ipcMain.handle("smbcatty:sftp:read", readSftp);
+  ipcMain.handle("smbcatty:sftp:write", writeSftp);
+  ipcMain.handle("smbcatty:sftp:writeBinaryWithProgress", writeSftpBinaryWithProgress);
+  ipcMain.handle("smbcatty:sftp:close", closeSftp);
+  ipcMain.handle("smbcatty:sftp:mkdir", mkdirSftp);
+  ipcMain.handle("smbcatty:sftp:delete", deleteSftp);
+  ipcMain.handle("smbcatty:sftp:rename", renameSftp);
+  ipcMain.handle("smbcatty:sftp:stat", statSftp);
+  ipcMain.handle("smbcatty:sftp:chmod", chmodSftp);
 }
 
 /**

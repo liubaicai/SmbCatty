@@ -13,7 +13,7 @@ const GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
  * @param {Electron.IpcMain} ipcMain
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:github:deviceFlow:start", async (_event, payload) => {
+  ipcMain.handle("smbcatty:github:deviceFlow:start", async (_event, payload) => {
     const clientId = payload?.clientId || GITHUB_CLIENT_ID;
     const scope = payload?.scope || "gist read:user";
 
@@ -50,7 +50,7 @@ function registerHandlers(ipcMain) {
     };
   });
 
-  ipcMain.handle("netcatty:github:deviceFlow:poll", async (_event, payload) => {
+  ipcMain.handle("smbcatty:github:deviceFlow:poll", async (_event, payload) => {
     const clientId = payload?.clientId || GITHUB_CLIENT_ID;
     const deviceCode = payload?.deviceCode;
     if (!deviceCode) throw new Error("Missing deviceCode");

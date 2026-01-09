@@ -6,7 +6,7 @@
 
 import { Host,PortForwardingRule } from '../../domain/models';
 import { logger } from '../../lib/logger';
-import { netcattyBridge } from './netcattyBridge';
+import { smbcattyBridge } from './smbcattyBridge';
 
 export interface PortForwardingConnection {
   ruleId: string;
@@ -148,7 +148,7 @@ const parseRuleIdFromTunnelId = (tunnelId: string): string | null => {
  * This updates the local activeConnections map to match the backend state.
  */
 export const syncWithBackend = async (): Promise<void> => {
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
   
   if (!bridge?.listPortForwards) {
     logger.warn('[PortForwardingService] Backend not available for sync');
@@ -188,7 +188,7 @@ export const startPortForward = async (
   onStatusChange: (status: PortForwardingRule['status'], error?: string) => void,
   enableReconnect = false
 ): Promise<{ success: boolean; error?: string }> => {
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
   
   // Clear any existing reconnect timer
   clearReconnectTimer(rule.id);
@@ -301,7 +301,7 @@ export const stopPortForward = async (
   ruleId: string,
   onStatusChange: (status: PortForwardingRule['status']) => void
 ): Promise<{ success: boolean; error?: string }> => {
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
   const conn = activeConnections.get(ruleId);
   
   // Clear any pending reconnect timer
@@ -351,14 +351,14 @@ export const getPortForwardStatus = async (
  * Check if backend is available
  */
 export const isBackendAvailable = (): boolean => {
-  return !!(netcattyBridge.get()?.startPortForward);
+  return !!(smbcattyBridge.get()?.startPortForward);
 };
 
 /**
  * Stop all active tunnels (cleanup on unmount)
  */
 export const stopAllPortForwards = async (): Promise<void> => {
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
   
   for (const [ruleId, conn] of activeConnections) {
     // Clear any pending reconnect timer

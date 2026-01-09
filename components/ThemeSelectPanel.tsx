@@ -101,10 +101,10 @@ const ThemeSelectPanel: React.FC<ThemeSelectPanelProps> = ({
                     </div>
                     {/* Show usage stats or badge */}
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        {theme.id === 'netcatty-dark' && (
+                        {theme.id === 'smbcatty-dark' && (
                             <span className="text-muted-foreground">Default</span>
                         )}
-                        {theme.id === 'netcatty-light' && (
+                        {theme.id === 'smbcatty-light' && (
                             <>
                                 <Users size={10} />
                                 <span>Light mode</span>

@@ -172,13 +172,13 @@ const renderOAuthPage = ({ title, message, detail, status, autoClose }) => {
         <path d="M26 30H30" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
       </svg>
       <div>
-        <div class="brand">Netcatty</div>
+        <div class="brand">SmbCatty</div>
       </div>
     </div>
     <h1 class="title-row"><span>${safeTitle}</span>${titleIcon}</h1>
     <p class="subtitle">${safeMessage}</p>
     ${detailBlock}
-    <div class="footer">You can close this window and return to <span class="accent">Netcatty</span>.</div>
+    <div class="footer">You can close this window and return to <span class="accent">SmbCatty</span>.</div>
   </div>
   ${closeScript}
 </body>

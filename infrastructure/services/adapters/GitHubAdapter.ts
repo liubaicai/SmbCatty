@@ -18,7 +18,7 @@ import {
   type SyncedFile,
   type GitHubDeviceCodeResponse,
 } from '../../../domain/sync';
-import { netcattyBridge } from '../netcattyBridge';
+import { smbcattyBridge } from '../smbcattyBridge';
 
 // ============================================================================
 // Types
@@ -64,7 +64,7 @@ export const startDeviceFlow = async (): Promise<DeviceFlowState> => {
   console.log('[GitHub] Starting device flow...');
   console.log('[GitHub] Client ID:', SYNC_CONSTANTS.GITHUB_CLIENT_ID);
 
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
   if (bridge?.githubStartDeviceFlow) {
     return bridge.githubStartDeviceFlow({
       clientId: SYNC_CONSTANTS.GITHUB_CLIENT_ID,
@@ -120,7 +120,7 @@ export const pollForToken = async (
   onPending?: () => void
 ): Promise<OAuthTokens | null> => {
   const pollInterval = Math.max(interval, 5) * 1000; // Minimum 5 seconds
-  const bridge = netcattyBridge.get();
+  const bridge = smbcattyBridge.get();
 
   while (Date.now() < expiresAt) {
     await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -232,7 +232,7 @@ export const validateToken = async (accessToken: string): Promise<boolean> => {
 // ============================================================================
 
 /**
- * Find existing Netcatty sync gist
+ * Find existing SmbCatty sync gist
  */
 export const findSyncGist = async (accessToken: string): Promise<string | null> => {
   // List user's gists and find ours

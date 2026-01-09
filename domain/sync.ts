@@ -364,17 +364,17 @@ export type SyncEvent =
 // ============================================================================
 
 export const SYNC_STORAGE_KEYS = {
-  MASTER_KEY_CONFIG: 'netcatty_master_key_config_v1',
-  DEVICE_ID: 'netcatty_device_id_v1',
-  DEVICE_NAME: 'netcatty_device_name_v1',
-  SYNC_CONFIG: 'netcatty_sync_config_v2',
-  PROVIDER_GITHUB: 'netcatty_provider_github_v1',
-  PROVIDER_GOOGLE: 'netcatty_provider_google_v1',
-  PROVIDER_ONEDRIVE: 'netcatty_provider_onedrive_v1',
-  PROVIDER_WEBDAV: 'netcatty_provider_webdav_v1',
-  PROVIDER_S3: 'netcatty_provider_s3_v1',
-  PROVIDER_SMB: 'netcatty_provider_smb_v1',
-  LOCAL_SYNC_META: 'netcatty_local_sync_meta_v1',
+  MASTER_KEY_CONFIG: 'smbcatty_master_key_config_v1',
+  DEVICE_ID: 'smbcatty_device_id_v1',
+  DEVICE_NAME: 'smbcatty_device_name_v1',
+  SYNC_CONFIG: 'smbcatty_sync_config_v2',
+  PROVIDER_GITHUB: 'smbcatty_provider_github_v1',
+  PROVIDER_GOOGLE: 'smbcatty_provider_google_v1',
+  PROVIDER_ONEDRIVE: 'smbcatty_provider_onedrive_v1',
+  PROVIDER_WEBDAV: 'smbcatty_provider_webdav_v1',
+  PROVIDER_S3: 'smbcatty_provider_s3_v1',
+  PROVIDER_SMB: 'smbcatty_provider_smb_v1',
+  LOCAL_SYNC_META: 'smbcatty_local_sync_meta_v1',
 } as const;
 
 // ============================================================================
@@ -399,8 +399,8 @@ export const SYNC_CONSTANTS = {
   PBKDF2_HASH: 'SHA-256',
   
   // Sync
-  SYNC_FILE_NAME: 'netcatty-vault.json',
-  GIST_DESCRIPTION: 'Netcatty Encrypted Vault (DO NOT EDIT MANUALLY)',
+  SYNC_FILE_NAME: 'smbcatty-vault.json',
+  GIST_DESCRIPTION: 'SmbCatty Encrypted Vault (DO NOT EDIT MANUALLY)',
   
   // Auto-sync
   DEFAULT_AUTO_SYNC_INTERVAL: 5, // minutes
@@ -443,7 +443,7 @@ export const generateDeviceId = (): string => {
  */
 export const getDefaultDeviceName = (): string => {
   const platform = navigator.platform || 'Unknown';
-  const hostname = 'Netcatty';
+  const hostname = 'SmbCatty';
   return `${hostname} (${platform})`;
 };
 

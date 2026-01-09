@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { checkForUpdates, getReleaseUrl, type ReleaseInfo, type UpdateCheckResult } from '../../infrastructure/services/updateService';
 import { localStorageAdapter } from '../../infrastructure/persistence/localStorageAdapter';
 import { STORAGE_KEY_UPDATE_DISMISSED_VERSION, STORAGE_KEY_UPDATE_LAST_CHECK } from '../../infrastructure/config/storageKeys';
-import { netcattyBridge } from '../../infrastructure/services/netcattyBridge';
+import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
 
 // Check for updates at most once per hour
 const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
@@ -59,7 +59,7 @@ export function useUpdateCheck(): UseUpdateCheckResult {
   useEffect(() => {
     const loadVersion = async () => {
       try {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         const info = await bridge?.getAppInfo?.();
         if (info?.version) {
           setUpdateState((prev) => ({ ...prev, currentVersion: info.version }));
@@ -178,7 +178,7 @@ export function useUpdateCheck(): UseUpdateCheckResult {
       : getReleaseUrl();
 
     try {
-      const bridge = netcattyBridge.get();
+      const bridge = smbcattyBridge.get();
       if (bridge?.openExternal) {
         await bridge.openExternal(url);
         return;

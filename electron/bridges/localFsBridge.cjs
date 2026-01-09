@@ -204,16 +204,16 @@ async function readKnownHosts() {
  * Register IPC handlers for local filesystem operations
  */
 function registerHandlers(ipcMain) {
-  ipcMain.handle("netcatty:local:list", listLocalDir);
-  ipcMain.handle("netcatty:local:read", readLocalFile);
-  ipcMain.handle("netcatty:local:write", writeLocalFile);
-  ipcMain.handle("netcatty:local:delete", deleteLocalFile);
-  ipcMain.handle("netcatty:local:rename", renameLocalFile);
-  ipcMain.handle("netcatty:local:mkdir", mkdirLocal);
-  ipcMain.handle("netcatty:local:stat", statLocal);
-  ipcMain.handle("netcatty:local:homedir", getHomeDir);
-  ipcMain.handle("netcatty:system:info", getSystemInfo);
-  ipcMain.handle("netcatty:known-hosts:read", readKnownHosts);
+  ipcMain.handle("smbcatty:local:list", listLocalDir);
+  ipcMain.handle("smbcatty:local:read", readLocalFile);
+  ipcMain.handle("smbcatty:local:write", writeLocalFile);
+  ipcMain.handle("smbcatty:local:delete", deleteLocalFile);
+  ipcMain.handle("smbcatty:local:rename", renameLocalFile);
+  ipcMain.handle("smbcatty:local:mkdir", mkdirLocal);
+  ipcMain.handle("smbcatty:local:stat", statLocal);
+  ipcMain.handle("smbcatty:local:homedir", getHomeDir);
+  ipcMain.handle("smbcatty:system:info", getSystemInfo);
+  ipcMain.handle("smbcatty:known-hosts:read", readKnownHosts);
 }
 
 module.exports = {
