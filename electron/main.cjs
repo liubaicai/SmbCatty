@@ -4,13 +4,10 @@
  * This is the main entry point for the Electron application.
  * All major functionality has been extracted into separate bridge modules:
  * 
- * - sshBridge.cjs: SSH connections and session management
- * - sftpBridge.cjs: SFTP file operations
  * - localFsBridge.cjs: Local filesystem operations
- * - transferBridge.cjs: File transfers with progress
- * - portForwardingBridge.cjs: SSH port forwarding tunnels
- * - terminalBridge.cjs: Local shell, telnet, and mosh sessions
  * - windowManager.cjs: Electron window management
+ * - cloudSyncBridge.cjs: Cloud sync operations
+ * - oauthBridge.cjs: OAuth authentication
  */
 
 // Handle environment setup
@@ -62,15 +59,8 @@ try {
   console.warn("[Main] Failed to register app:// scheme privileges:", err);
 }
 
-// Apply ssh2 protocol patch needed for OpenSSH sk-* signature layouts.
-
 // Import bridge modules
-const sshBridge = require("./bridges/sshBridge.cjs");
-const sftpBridge = require("./bridges/sftpBridge.cjs");
 const localFsBridge = require("./bridges/localFsBridge.cjs");
-const transferBridge = require("./bridges/transferBridge.cjs");
-const portForwardingBridge = require("./bridges/portForwardingBridge.cjs");
-const terminalBridge = require("./bridges/terminalBridge.cjs");
 const oauthBridge = require("./bridges/oauthBridge.cjs");
 const githubAuthBridge = require("./bridges/githubAuthBridge.cjs");
 const googleAuthBridge = require("./bridges/googleAuthBridge.cjs");
@@ -256,35 +246,8 @@ function focusMainWindow() {
 }
 
 // Shared state
-const sessions = new Map();
-const sftpClients = new Map();
-const keyRoot = path.join(os.homedir(), ".smbcatty", "keys");
 let cloudSyncSessionPassword = null;
 const CLOUD_SYNC_PASSWORD_FILE = "smbcatty_cloud_sync_master_password_v1";
-
-// Key management helpers
-const ensureKeyDir = () => {
-  try {
-    fs.mkdirSync(keyRoot, { recursive: true, mode: 0o700 });
-  } catch (err) {
-    console.warn("Unable to ensure key cache dir", err);
-  }
-};
-
-const writeKeyToDisk = (keyId, privateKey) => {
-  if (!privateKey) return null;
-  ensureKeyDir();
-  const filename = `${keyId || "temp"}.pem`;
-  const target = path.join(keyRoot, filename);
-  const normalized = privateKey.endsWith("\n") ? privateKey : `${privateKey}\n`;
-  try {
-    fs.writeFileSync(target, normalized, { mode: 0o600 });
-    return target;
-  } catch (err) {
-    console.error("Failed to persist private key", err);
-    return null;
-  }
-};
 
 // Track if bridges are registered
 let bridgesRegistered = false;
@@ -348,25 +311,8 @@ const registerBridges = (win) => {
     }
   };
 
-  // Initialize bridges with shared dependencies
-  const deps = {
-    sessions,
-    sftpClients,
-    electronModule,
-  };
-
-  sshBridge.init(deps);
-  sftpBridge.init(deps);
-  transferBridge.init(deps);
-  terminalBridge.init(deps);
-
   // Register all IPC handlers
-  sshBridge.registerHandlers(ipcMain);
-  sftpBridge.registerHandlers(ipcMain);
   localFsBridge.registerHandlers(ipcMain);
-  transferBridge.registerHandlers(ipcMain);
-  portForwardingBridge.registerHandlers(ipcMain);
-  terminalBridge.registerHandlers(ipcMain);
   oauthBridge.setupOAuthBridge(ipcMain);
   githubAuthBridge.registerHandlers(ipcMain);
   googleAuthBridge.registerHandlers(ipcMain, electronModule);
@@ -485,35 +431,6 @@ const registerBridges = (win) => {
     }
     
     return true;
-  });
-
-  // Download SFTP file to temp and return local path
-  ipcMain.handle("smbcatty:sftp:downloadToTemp", async (_event, { sftpId, remotePath, fileName }) => {
-    const client = require("./bridges/sftpBridge.cjs");
-    const tempDir = os.tmpdir();
-    const tempFileName = `smbcatty_${Date.now()}_${fileName}`;
-    const localPath = path.join(tempDir, tempFileName);
-    
-    // Get the sftp client and download file
-    const sftpClients = client.getSftpClients ? client.getSftpClients() : null;
-    if (!sftpClients) {
-      // Fallback: use readSftp and write to temp file
-      const content = await client.readSftp(null, { sftpId, path: remotePath });
-      if (typeof content === "string") {
-        await fs.promises.writeFile(localPath, content, "utf-8");
-      } else {
-        await fs.promises.writeFile(localPath, content);
-      }
-      return localPath;
-    }
-    
-    const sftpClient = sftpClients.get(sftpId);
-    if (!sftpClient) {
-      throw new Error("SFTP session not found");
-    }
-    
-    await sftpClient.fastGet(remotePath, localPath);
-    return localPath;
   });
 
   console.log('[Main] All bridges registered successfully');

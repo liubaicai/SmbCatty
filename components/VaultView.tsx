@@ -1,84 +1,32 @@
-import {
-  Activity,
-  BookMarked,
-  ChevronDown,
-  Edit2,
-  FileCode,
-  FolderPlus,
-  FolderTree,
-  Key,
-  LayoutGrid,
-  List,
-  Plug,
-  Plus,
-  Search,
-  Settings,
-  TerminalSquare,
-  Trash2,
-  Upload,
-  Usb,
-  Zap,
-} from "lucide-react";
-import React, { Suspense, lazy, memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
-import { useStoredViewMode } from "../application/state/useStoredViewMode";
 import { sanitizeHost } from "../domain/host";
-import { importVaultHostsFromText } from "../domain/vaultImport";
-import type { VaultImportFormat } from "../domain/vaultImport";
-import { STORAGE_KEY_VAULT_HOSTS_VIEW_MODE } from "../infrastructure/config/storageKeys";
 import { cn } from "../lib/utils";
 import {
   ConnectionLog,
-  GroupNode,
   Host,
-  HostProtocol,
   Identity,
   KnownHost,
-  SerialConfig,
   SSHKey,
   ShellHistoryEntry,
   Snippet,
   TerminalSession,
 } from "../types";
 import { AppLogo } from "./AppLogo";
-import ConnectionLogsManager from "./ConnectionLogsManager";
-import { DistroAvatar } from "./DistroAvatar";
 import HostDetailsPanel from "./HostDetailsPanel";
-import KeychainManager from "./KeychainManager";
-import KnownHostsManager from "./KnownHostsManager";
-import PortForwarding from "./PortForwardingNew";
-import QuickConnectWizard from "./QuickConnectWizard";
-import { isQuickConnectInput, parseQuickConnectInputWithWarnings } from "../domain/quickConnect";
-import SerialConnectModal from "./SerialConnectModal";
 import SnippetsManager from "./SnippetsManager";
-import { ImportVaultDialog } from "./vault/ImportVaultDialog";
 import { Button } from "./ui/button";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "./ui/context-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
-import { Dropdown, DropdownContent, DropdownTrigger } from "./ui/dropdown";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { SortDropdown, SortMode } from "./ui/sort-dropdown";
-import { TagFilterDropdown } from "./ui/tag-filter-dropdown";
 import { toast } from "./ui/toast";
+import {
+  Plus,
+  Search,
+  Settings,
+  Zap,
+} from "lucide-react";
 
-const LazyProtocolSelectDialog = lazy(() => import("./ProtocolSelectDialog"));
+export type VaultSection = "hosts" | "snippets";
 
-export type VaultSection = "hosts" | "keys" | "snippets" | "port" | "knownhosts" | "logs";
-
-// Props without isActive - it's now subscribed internally
 interface VaultViewProps {
   hosts: Host[];
   keys: SSHKey[];
@@ -93,1472 +41,241 @@ interface VaultViewProps {
   onOpenSettings: () => void;
   onOpenQuickSwitcher: () => void;
   onCreateLocalTerminal: () => void;
-  onConnectSerial?: (config: SerialConfig) => void;
-  onDeleteHost: (id: string) => void;
+  onConnectSerial: () => void;
+  onDeleteHost: (hostId: string) => void;
   onConnect: (host: Host) => void;
   onUpdateHosts: (hosts: Host[]) => void;
   onUpdateKeys: (keys: SSHKey[]) => void;
   onUpdateIdentities: (identities: Identity[]) => void;
   onUpdateSnippets: (snippets: Snippet[]) => void;
-  onUpdateSnippetPackages: (pkgs: string[]) => void;
+  onUpdateSnippetPackages: (packages: string[]) => void;
   onUpdateCustomGroups: (groups: string[]) => void;
-  onUpdateKnownHosts: (knownHosts: KnownHost[]) => void;
-  onConvertKnownHost: (knownHost: KnownHost) => void;
-  onToggleConnectionLogSaved: (id: string) => void;
-  onDeleteConnectionLog: (id: string) => void;
+  onUpdateKnownHosts: (hosts: KnownHost[]) => void;
+  onConvertKnownHost: (host: KnownHost) => Host;
+  onToggleConnectionLogSaved: (logId: string) => void;
+  onDeleteConnectionLog: (logId: string) => void;
   onClearUnsavedConnectionLogs: () => void;
+  onRunSnippet: (snippetId: string, sessionId: string) => void;
   onOpenLogView: (log: ConnectionLog) => void;
-  onRunSnippet?: (snippet: Snippet, targetHosts: Host[]) => void;
-  // Optional: navigate to a specific section on mount or when changed
-  navigateToSection?: VaultSection | null;
-  onNavigateToSectionHandled?: () => void;
+  navigateToSection: VaultSection | null;
+  onNavigateToSectionHandled: () => void;
 }
 
-const VaultViewInner: React.FC<VaultViewProps> = ({
+export const VaultView = memo(function VaultView({
   hosts,
   keys,
   identities,
   snippets,
   snippetPackages,
-  customGroups,
-  knownHosts,
-  shellHistory,
-  connectionLogs,
-  sessions,
   onOpenSettings,
-  onOpenQuickSwitcher,
-  onCreateLocalTerminal,
-  onConnectSerial,
   onDeleteHost,
   onConnect,
   onUpdateHosts,
-  onUpdateKeys,
-  onUpdateIdentities,
   onUpdateSnippets,
   onUpdateSnippetPackages,
-  onUpdateCustomGroups,
-  onUpdateKnownHosts,
-  onConvertKnownHost,
-  onToggleConnectionLogSaved,
-  onDeleteConnectionLog,
-  onClearUnsavedConnectionLogs,
-  onOpenLogView,
-  onRunSnippet,
   navigateToSection,
   onNavigateToSectionHandled,
-}) => {
+}: VaultViewProps) {
   const { t } = useI18n();
-  const [currentSection, setCurrentSection] = useState<VaultSection>("hosts");
-  const [search, setSearch] = useState("");
-  const [selectedGroupPath, setSelectedGroupPath] = useState<string | null>(
-    null,
-  );
-  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [targetParentPath, setTargetParentPath] = useState<string | null>(null);
-  const [isRenameGroupOpen, setIsRenameGroupOpen] = useState(false);
-  const [renameTargetPath, setRenameTargetPath] = useState<string | null>(null);
-  const [renameGroupName, setRenameGroupName] = useState("");
-  const [renameGroupError, setRenameGroupError] = useState<string | null>(null);
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isSerialModalOpen, setIsSerialModalOpen] = useState(false);
+  const [section, setSection] = useState<VaultSection>("hosts");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editingHost, setEditingHost] = useState<Host | null>(null);
+  const [isNewHost, setIsNewHost] = useState(false);
 
-  // Handle external navigation requests
-  useEffect(() => {
+  // Handle navigation from external sources
+  React.useEffect(() => {
     if (navigateToSection) {
-      setCurrentSection(navigateToSection);
-      onNavigateToSectionHandled?.();
+      setSection(navigateToSection);
+      onNavigateToSectionHandled();
     }
   }, [navigateToSection, onNavigateToSectionHandled]);
 
-  // View mode, sorting, and tag filter state
-  const [viewMode, setViewMode] = useStoredViewMode(
-    STORAGE_KEY_VAULT_HOSTS_VIEW_MODE,
-    "grid",
-  );
-  const [sortMode, setSortMode] = useState<SortMode>("az");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const filteredHosts = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return hosts;
+    return hosts.filter(
+      (h) =>
+        h.label.toLowerCase().includes(query) ||
+        h.hostname.toLowerCase().includes(query) ||
+        (h.group || "").toLowerCase().includes(query)
+    );
+  }, [hosts, searchQuery]);
 
-  // Host panel state (local to hosts section)
-  const [isHostPanelOpen, setIsHostPanelOpen] = useState(false);
-  const [editingHost, setEditingHost] = useState<Host | null>(null);
-
-  // Quick connect state
-  const [quickConnectTarget, setQuickConnectTarget] = useState<{
-    hostname: string;
-    username?: string;
-    port?: number;
-  } | null>(null);
-  const [isQuickConnectOpen, setIsQuickConnectOpen] = useState(false);
-  const [quickConnectWarnings, setQuickConnectWarnings] = useState<string[]>([]);
-
-  // Protocol select state (for hosts with multiple protocols)
-  const [protocolSelectHost, setProtocolSelectHost] = useState<Host | null>(
-    null,
-  );
-
-  // Check if search input is a quick connect address
-  const isSearchQuickConnect = useMemo(() => {
-    return isQuickConnectInput(search);
-  }, [search]);
-
-  // Handle connect button click - detect quick connect or regular search
-  const handleConnectClick = useCallback(() => {
-    if (isSearchQuickConnect) {
-      const parsed = parseQuickConnectInputWithWarnings(search);
-      if (parsed.target) {
-        setQuickConnectTarget(parsed.target);
-        setQuickConnectWarnings(parsed.warnings);
-        setIsQuickConnectOpen(true);
-      }
-    } else {
-      onOpenQuickSwitcher();
-    }
-  }, [isSearchQuickConnect, search, onOpenQuickSwitcher]);
-
-  // Handle search input keydown for quick connect
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && isSearchQuickConnect) {
-        e.preventDefault();
-        handleConnectClick();
-      }
-    },
-    [isSearchQuickConnect, handleConnectClick],
-  );
-
-  // Check if host has multiple protocols enabled
-  const hasMultipleProtocols = useCallback((host: Host) => {
-    let count = 0;
-    // SSH is always available as base protocol (unless explicitly set to something else)
-    if (host.protocol === "ssh" || !host.protocol) count++;
-    // Mosh adds another option
-    if (host.moshEnabled) count++;
-    // Telnet adds another option
-    if (host.telnetEnabled) count++;
-    // If protocol is explicitly telnet (not ssh), count it
-    if (host.protocol === "telnet" && !host.telnetEnabled) count++;
-    return count > 1;
-  }, []);
-
-  // Handle host connect with protocol selection
-  const handleHostConnect = useCallback(
+  const handleSaveHost = useCallback(
     (host: Host) => {
-      if (hasMultipleProtocols(host)) {
-        setProtocolSelectHost(host);
+      const sanitized = sanitizeHost(host);
+      if (isNewHost) {
+        onUpdateHosts([...hosts, sanitized]);
+        toast.success(t("toast.hostCreated"), "Host");
       } else {
-        onConnect(host);
+        onUpdateHosts(
+          hosts.map((h) => (h.id === sanitized.id ? sanitized : h))
+        );
+        toast.success(t("toast.hostSaved"), "Host");
       }
+      setEditingHost(null);
+      setIsNewHost(false);
     },
-    [hasMultipleProtocols, onConnect],
-  );
-
-  // Handle protocol selection
-  const handleProtocolSelect = useCallback(
-    (protocol: HostProtocol, port: number) => {
-      if (protocolSelectHost) {
-        const hostWithProtocol: Host = {
-          ...protocolSelectHost,
-          protocol: protocol === "mosh" ? "ssh" : protocol,
-          port,
-          moshEnabled: protocol === "mosh",
-        };
-        onConnect(hostWithProtocol);
-        setProtocolSelectHost(null);
-      }
-    },
-    [protocolSelectHost, onConnect],
-  );
-
-  // Handle quick connect
-  const handleQuickConnect = useCallback(
-    (host: Host) => {
-      onConnect(host);
-      setIsQuickConnectOpen(false);
-      setQuickConnectTarget(null);
-      setQuickConnectWarnings([]);
-      setSearch("");
-    },
-    [onConnect],
-  );
-
-  // Handle quick connect save host
-  const handleQuickConnectSaveHost = useCallback(
-    (host: Host) => {
-      onUpdateHosts([...hosts, host]);
-    },
-    [hosts, onUpdateHosts],
+    [hosts, isNewHost, onUpdateHosts, t]
   );
 
   const handleNewHost = useCallback(() => {
-    setEditingHost(null);
-    setIsHostPanelOpen(true);
+    setEditingHost({
+      id: crypto.randomUUID(),
+      label: "",
+      hostname: "",
+      port: 445,
+      share: "",
+      username: "",
+      group: "",
+      tags: [],
+      createdAt: Date.now(),
+    });
+    setIsNewHost(true);
   }, []);
 
   const handleEditHost = useCallback((host: Host) => {
     setEditingHost(host);
-    setIsHostPanelOpen(true);
+    setIsNewHost(false);
   }, []);
 
-  const readTextFile = useCallback(async (file: File): Promise<string> => {
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-
-    let encoding: string = "utf-8";
-    let offset = 0;
-
-    if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-      encoding = "utf-16le";
-      offset = 2;
-    } else if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
-      encoding = "utf-16be";
-      offset = 2;
-    } else if (
-      bytes.length >= 3 &&
-      bytes[0] === 0xef &&
-      bytes[1] === 0xbb &&
-      bytes[2] === 0xbf
-    ) {
-      encoding = "utf-8";
-      offset = 3;
-    }
-
-    const decoder = new TextDecoder(encoding);
-    return decoder.decode(bytes.slice(offset));
+  const handleCancelEdit = useCallback(() => {
+    setEditingHost(null);
+    setIsNewHost(false);
   }, []);
 
-  const handleImportFileSelected = useCallback(
-    async (format: VaultImportFormat, file: File) => {
-      setIsImportOpen(false);
-
-      try {
-        const formatLabel =
-          format === "putty"
-            ? "PuTTY"
-            : format === "mobaxterm"
-              ? "MobaXterm"
-              : format === "csv"
-                ? "CSV"
-                : format === "securecrt"
-                  ? "SecureCRT"
-                  : "ssh_config";
-
-        toast.info(t("vault.import.toast.start", { format: formatLabel }));
-
-        const text = await readTextFile(file);
-        const result = importVaultHostsFromText(format, text, {
-          fileName: file.name,
-        });
-
-        const makeKey = (h: Host) =>
-          `${(h.protocol ?? "ssh").toLowerCase()}|${h.hostname.toLowerCase()}|${h.port}|${(h.username ?? "").toLowerCase()}`;
-
-        const existingKeys = new Set(hosts.map(makeKey));
-        const newHosts = result.hosts.filter((h) => !existingKeys.has(makeKey(h)));
-
-        if (newHosts.length > 0) {
-          onUpdateHosts([...hosts, ...newHosts].map(sanitizeHost));
-
-          const nextGroups = Array.from(
-            new Set([
-              ...customGroups,
-              ...result.groups,
-              ...newHosts.map((h) => h.group).filter(Boolean),
-            ]),
-          ) as string[];
-          onUpdateCustomGroups(nextGroups);
-        }
-
-        const skipped = result.stats.skipped;
-        const duplicates = result.stats.duplicates;
-        const hasWarnings = skipped > 0 || duplicates > 0 || result.issues.length > 0;
-
-        if (result.stats.parsed === 0 && newHosts.length === 0) {
-          toast.error(
-            t("vault.import.toast.noEntries", { format: formatLabel }),
-            t("vault.import.toast.failedTitle"),
-          );
-          return;
-        }
-
-        if (newHosts.length === 0) {
-          toast.warning(
-            t("vault.import.toast.noNewHosts", { format: formatLabel }),
-            t("vault.import.toast.completedTitle"),
-          );
-          return;
-        }
-
-        const details = t("vault.import.toast.summary", {
-          count: newHosts.length,
-          skipped,
-          duplicates,
-        });
-
-        if (hasWarnings) {
-          const firstIssue = result.issues[0]?.message;
-          toast.warning(
-            firstIssue ? `${details} ${t("vault.import.toast.firstIssue", { issue: firstIssue })}` : details,
-            t("vault.import.toast.completedTitle"),
-          );
-        } else {
-          toast.success(details, t("vault.import.toast.completedTitle"));
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : t("common.unknownError");
-        toast.error(message, t("vault.import.toast.failedTitle"));
-      }
-    },
-    [
-      customGroups,
-      hosts,
-      onUpdateCustomGroups,
-      onUpdateHosts,
-      readTextFile,
-      t,
-    ],
-  );
-
-  const buildGroupTree = useMemo<Record<string, GroupNode>>(() => {
-    const root: Record<string, GroupNode> = {};
-    const insertPath = (path: string, host?: Host) => {
-      const parts = path.split("/").filter(Boolean);
-      let currentLevel = root;
-      let currentPath = "";
-      parts.forEach((part, index) => {
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
-        if (!currentLevel[part]) {
-          currentLevel[part] = {
-            name: part,
-            path: currentPath,
-            children: {},
-            hosts: [],
-          };
-        }
-        if (host && index === parts.length - 1)
-          currentLevel[part].hosts.push(host);
-        currentLevel = currentLevel[part].children;
-      });
-    };
-    customGroups.forEach((path) => insertPath(path));
-    hosts.forEach((host) => insertPath(host.group || "General", host));
-    return root;
-  }, [hosts, customGroups]);
-
-  const findGroupNode = (path: string | null): GroupNode | null => {
-    if (!path)
-      return {
-        name: "root",
-        path: "",
-        children: buildGroupTree,
-        hosts: [],
-      } as GroupNode;
-    const parts = path.split("/").filter(Boolean);
-    let current: { children?: Record<string, GroupNode>; hosts?: Host[] } = {
-      children: buildGroupTree,
-    };
-    for (const p of parts) {
-      const next = current.children?.[p];
-      if (!next) return null;
-      current = next;
-    }
-    return current as GroupNode;
-  };
-
-  const displayedHosts = useMemo(() => {
-    let filtered = hosts;
-    if (selectedGroupPath) {
-      filtered = filtered.filter((h) => (h.group || "") === selectedGroupPath);
-    }
-    if (search.trim()) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter(
-        (h) =>
-          h.label.toLowerCase().includes(s) ||
-          h.hostname.toLowerCase().includes(s) ||
-          h.tags.some((t) => t.toLowerCase().includes(s)),
-      );
-    }
-    // Apply tag filter
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((h) =>
-        selectedTags.some((t) => h.tags?.includes(t)),
-      );
-    }
-    // Apply sorting
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortMode) {
-        case "az":
-          return a.label.localeCompare(b.label);
-        case "za":
-          return b.label.localeCompare(a.label);
-        case "newest":
-          return (b.createdAt || 0) - (a.createdAt || 0);
-        case "oldest":
-          return (a.createdAt || 0) - (b.createdAt || 0);
-        default:
-          return 0;
-      }
-    });
-    return filtered;
-  }, [hosts, selectedGroupPath, search, selectedTags, sortMode]);
-
-  // Compute all unique tags across all hosts
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    hosts.forEach((h) => h.tags?.forEach((t) => tagSet.add(t)));
-    return Array.from(tagSet).sort();
-  }, [hosts]);
-
-  // Handle tag edit - rename tag across all hosts
-  const handleEditTag = useCallback(
-    (oldTag: string, newTag: string) => {
-      if (oldTag === newTag) return;
-      const updatedHosts = hosts.map((host) => {
-        if (host.tags?.includes(oldTag)) {
-          const newTags = host.tags.map((t) => (t === oldTag ? newTag : t));
-          // Remove duplicates in case newTag already exists
-          return { ...host, tags: Array.from(new Set(newTags)) };
-        }
-        return host;
-      });
-      onUpdateHosts(updatedHosts);
-    },
-    [hosts, onUpdateHosts],
-  );
-
-  // Handle tag delete - remove tag from all hosts
-  const handleDeleteTag = useCallback(
-    (tag: string) => {
-      const updatedHosts = hosts.map((host) => {
-        if (host.tags?.includes(tag)) {
-          return { ...host, tags: host.tags.filter((t) => t !== tag) };
-        }
-        return host;
-      });
-      onUpdateHosts(updatedHosts);
-    },
-    [hosts, onUpdateHosts],
-  );
-
-  const displayedGroups = useMemo(() => {
-    if (!selectedGroupPath) {
-      return (Object.values(buildGroupTree) as GroupNode[]).sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-    }
-    const node = findGroupNode(selectedGroupPath);
-    if (!node || !node.children) return [];
-    return (Object.values(node.children) as GroupNode[]).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- findGroupNode is derived from buildGroupTree
-  }, [buildGroupTree, selectedGroupPath]);
-
-  // Known Hosts callbacks - use refs to keep stable references
-  // Store latest values in refs so callbacks don't need to depend on them
-  const knownHostsRef = React.useRef(knownHosts);
-  const onUpdateKnownHostsRef = React.useRef(onUpdateKnownHosts);
-
-  // Keep refs up to date
-  React.useEffect(() => {
-    knownHostsRef.current = knownHosts;
-    onUpdateKnownHostsRef.current = onUpdateKnownHosts;
-  });
-
-  // Stable callbacks that read from refs
-  const handleSaveKnownHost = useCallback((kh: KnownHost) => {
-    onUpdateKnownHostsRef.current([...knownHostsRef.current, kh]);
-  }, []);
-
-  const handleUpdateKnownHost = useCallback((kh: KnownHost) => {
-    onUpdateKnownHostsRef.current(
-      knownHostsRef.current.map((existing) =>
-        existing.id === kh.id ? kh : existing,
-      ),
-    );
-  }, []);
-
-  const handleDeleteKnownHost = useCallback((id: string) => {
-    onUpdateKnownHostsRef.current(
-      knownHostsRef.current.filter((kh) => kh.id !== id),
-    );
-  }, []);
-
-  const handleImportKnownHosts = useCallback((newHosts: KnownHost[]) => {
-    onUpdateKnownHostsRef.current([...knownHostsRef.current, ...newHosts]);
-  }, []);
-
-  const handleRefreshKnownHosts = useCallback(() => {
-    // Placeholder for system scan
-  }, []);
-
-  // Memoize the KnownHostsManager element to prevent re-renders when VaultViewInner re-renders
-  const knownHostsManagerElement = useMemo(() => {
+  if (editingHost) {
     return (
-      <KnownHostsManager
-        knownHosts={knownHosts}
-        hosts={hosts}
-        onSave={handleSaveKnownHost}
-        onUpdate={handleUpdateKnownHost}
-        onDelete={handleDeleteKnownHost}
-        onConvertToHost={onConvertKnownHost}
-        onImportFromFile={handleImportKnownHosts}
-        onRefresh={handleRefreshKnownHosts}
-      />
+      <div className="h-full bg-background">
+        <HostDetailsPanel
+          host={editingHost}
+          isNewHost={isNewHost}
+          keys={keys}
+          identities={identities}
+          onSave={handleSaveHost}
+          onCancel={handleCancelEdit}
+          onDelete={onDeleteHost}
+        />
+      </div>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handle* callbacks are stable refs that read from refs
-  }, [knownHosts, hosts, onConvertKnownHost]);
+  }
 
-  const submitNewFolder = () => {
-    if (!newFolderName.trim()) return;
-    const fullPath = targetParentPath
-      ? `${targetParentPath}/${newFolderName.trim()}`
-      : newFolderName.trim();
-    onUpdateCustomGroups(Array.from(new Set([...customGroups, fullPath])));
-    setNewFolderName("");
-    setTargetParentPath(null);
-    setIsNewFolderOpen(false);
-  };
-
-  const submitRenameGroup = () => {
-    if (!renameTargetPath) return;
-
-    const nextName = renameGroupName.trim();
-    if (!nextName) {
-      setRenameGroupError(t("vault.groups.errors.required"));
-      return;
-    }
-    if (nextName.includes("/") || nextName.includes("\\")) {
-      setRenameGroupError(t("vault.groups.errors.invalidChars"));
-      return;
-    }
-
-    const segments = renameTargetPath.split("/").filter(Boolean);
-    const parent = segments.slice(0, -1).join("/");
-    const nextPath = parent ? `${parent}/${nextName}` : nextName;
-    if (nextPath === renameTargetPath) {
-      setIsRenameGroupOpen(false);
-      return;
-    }
-
-    const updatedGroups = customGroups.map((g) => {
-      if (g === renameTargetPath) return nextPath;
-      if (g.startsWith(renameTargetPath + "/"))
-        return nextPath + g.slice(renameTargetPath.length);
-      return g;
-    });
-    const updatedHosts = hosts.map((h) => {
-      const g = h.group || "";
-      if (g === renameTargetPath) return { ...h, group: nextPath };
-      if (g.startsWith(renameTargetPath + "/"))
-        return { ...h, group: nextPath + g.slice(renameTargetPath.length) };
-      return h;
-    });
-
-    onUpdateCustomGroups(Array.from(new Set(updatedGroups)));
-    onUpdateHosts(updatedHosts);
-    if (
-      selectedGroupPath &&
-      (selectedGroupPath === renameTargetPath ||
-        selectedGroupPath.startsWith(renameTargetPath + "/"))
-    ) {
-      const suffix =
-        selectedGroupPath === renameTargetPath
-          ? ""
-          : selectedGroupPath.slice(renameTargetPath.length);
-      setSelectedGroupPath(nextPath + suffix);
-    }
-
-    setIsRenameGroupOpen(false);
-  };
-
-  const deleteGroupPath = (path: string) => {
-    const keepGroups = customGroups.filter(
-      (g) => !(g === path || g.startsWith(path + "/")),
-    );
-    const keepHosts = hosts.map((h) => {
-      const g = h.group || "";
-      if (g === path || g.startsWith(path + "/")) return { ...h, group: "" };
-      return h;
-    });
-    onUpdateCustomGroups(keepGroups);
-    onUpdateHosts(keepHosts);
-    if (
-      selectedGroupPath &&
-      (selectedGroupPath === path || selectedGroupPath.startsWith(path + "/"))
-    ) {
-      setSelectedGroupPath(null);
-    }
-  };
-
-  const moveGroup = (sourcePath: string, targetParent: string | null) => {
-    const name = sourcePath.split("/").filter(Boolean).pop() || "";
-    const newPath = targetParent ? `${targetParent}/${name}` : name;
-    if (newPath === sourcePath || newPath.startsWith(sourcePath + "/")) return;
-    const updatedGroups = customGroups.map((g) => {
-      if (g === sourcePath) return newPath;
-      if (g.startsWith(sourcePath + "/")) return g.replace(sourcePath, newPath);
-      return g;
-    });
-    const updatedHosts = hosts.map((h) => {
-      const g = h.group || "";
-      if (g === sourcePath) return { ...h, group: newPath };
-      if (g.startsWith(sourcePath + "/"))
-        return { ...h, group: g.replace(sourcePath, newPath) };
-      return h;
-    });
-    onUpdateCustomGroups(Array.from(new Set(updatedGroups)));
-    onUpdateHosts(updatedHosts);
-    if (
-      selectedGroupPath &&
-      (selectedGroupPath === sourcePath ||
-        selectedGroupPath.startsWith(sourcePath + "/"))
-    ) {
-      setSelectedGroupPath(newPath);
-    }
-  };
-
-  const moveHostToGroup = (hostId: string, groupPath: string | null) => {
-    onUpdateHosts(
-      hosts.map((h) =>
-        h.id === hostId ? { ...h, group: groupPath || "" } : h,
-      ),
-    );
-  };
-
-  // Component no longer handles visibility - that's done by VaultViewWrapper
   return (
-    <div className="absolute inset-0 min-h-0 flex">
-      {/* Sidebar */}
-      <div className="w-52 bg-secondary/80 border-r border-border/60 flex flex-col">
-        <div className="px-4 py-4 flex items-center gap-3">
-          <AppLogo className="h-10 w-10 rounded-xl" />
-          <div>
-            <p className="text-sm font-bold text-foreground">SmbCatty</p>
-          </div>
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-3">
+          <AppLogo size={32} />
+          <h1 className="text-xl font-semibold">SmbCatty</h1>
         </div>
-
-        <div className="px-3 space-y-1">
-          <Button
-            variant={currentSection === "hosts" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "hosts" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => {
-              setCurrentSection("hosts");
-              setSelectedGroupPath(null);
-            }}
-          >
-            <LayoutGrid size={16} /> {t("vault.nav.hosts")}
-          </Button>
-          <Button
-            variant={currentSection === "keys" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "keys" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => {
-              setCurrentSection("keys");
-            }}
-          >
-            <Key size={16} /> {t("vault.nav.keychain")}
-          </Button>
-          <Button
-            variant={currentSection === "port" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "port" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => setCurrentSection("port")}
-          >
-            <Plug size={16} /> {t("vault.nav.portForwarding")}
-          </Button>
-          <Button
-            variant={currentSection === "snippets" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "snippets" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => {
-              setCurrentSection("snippets");
-            }}
-          >
-            <FileCode size={16} /> {t("vault.nav.snippets")}
-          </Button>
-          <Button
-            variant={currentSection === "knownhosts" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "knownhosts" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => setCurrentSection("knownhosts")}
-          >
-            <BookMarked size={16} /> {t("vault.nav.knownHosts")}
-          </Button>
-          <Button
-            variant={currentSection === "logs" ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3 h-10",
-              currentSection === "logs" &&
-              "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-            )}
-            onClick={() => setCurrentSection("logs")}
-          >
-            <Activity size={16} /> {t("vault.nav.logs")}
-          </Button>
-        </div>
-
-        <div className="mt-auto px-3 pb-4 space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3"
-            onClick={onOpenSettings}
-          >
-            <Settings size={16} /> {t("common.settings")}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onOpenSettings}>
+            <Settings className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col min-h-0 relative">
-        {currentSection === "hosts" && (
-          <header className="border-b border-border/50 bg-secondary/80 backdrop-blur app-drag">
-            <div className="h-14 px-4 py-2 flex items-center gap-3">
-              <div className="relative flex-1 app-no-drag">
-                <Search
-                  size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
+      {/* Section Tabs */}
+      <div className="flex border-b px-4">
+        <button
+          onClick={() => setSection("hosts")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px",
+            section === "hosts"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          SMB Hosts
+        </button>
+        <button
+          onClick={() => setSection("snippets")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px",
+            section === "snippets"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Zap className="h-4 w-4 inline mr-1" />
+          Snippets
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-4">
+        {section === "hosts" && (
+          <div className="space-y-4">
+            {/* Search and Add */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t("vault.hosts.search.placeholder")}
-                  className={cn(
-                    "pl-9 h-10 bg-secondary border-border/60 text-sm",
-                    isSearchQuickConnect &&
-                    "border-primary/50 ring-1 ring-primary/20",
-                  )}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                />
-                {isSearchQuickConnect && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Zap size={14} className="text-primary" />
-                  </div>
-                )}
-              </div>
-              <Button
-                variant={isSearchQuickConnect ? "default" : "secondary"}
-                className={cn(
-                  "h-10 px-4 app-no-drag",
-                  !isSearchQuickConnect &&
-                  currentSection === "hosts" &&
-                  "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-                )}
-                onClick={handleConnectClick}
-              >
-                {t("vault.hosts.connect")}
-              </Button>
-              {/* View mode, tag filter, and sort controls */}
-              <div className="flex items-center gap-1 app-no-drag">
-                <Dropdown>
-                  <DropdownTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 app-no-drag">
-                      {viewMode === "grid" ? (
-                        <LayoutGrid size={16} />
-                      ) : (
-                        <List size={16} />
-                      )}
-                      <ChevronDown size={10} className="ml-0.5" />
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownContent className="w-32" align="end">
-                    <Button
-                      variant={viewMode === "grid" ? "secondary" : "ghost"}
-                      className="w-full justify-start gap-2 h-9"
-                      onClick={() => setViewMode("grid")}
-                    >
-                      <LayoutGrid size={14} /> {t("vault.view.grid")}
-                    </Button>
-                    <Button
-                      variant={viewMode === "list" ? "secondary" : "ghost"}
-                      className="w-full justify-start gap-2 h-9"
-                      onClick={() => setViewMode("list")}
-                    >
-                      <List size={14} /> {t("vault.view.list")}
-                    </Button>
-                  </DropdownContent>
-                </Dropdown>
-                <TagFilterDropdown
-                  allTags={allTags}
-                  selectedTags={selectedTags}
-                  onChange={setSelectedTags}
-                  onEditTag={handleEditTag}
-                  onDeleteTag={handleDeleteTag}
-                  className="h-10 w-10"
-                />
-                <SortDropdown
-                  value={sortMode}
-                  onChange={setSortMode}
-                  className="h-10 w-10"
+                  placeholder="Search hosts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
                 />
               </div>
-              {/* New Host split button */}
-              <div className="flex items-center app-no-drag">
-                <Dropdown>
-                  <div className="flex items-center rounded-md bg-primary text-primary-foreground">
-                    <Button
-                      size="sm"
-                      className="h-10 px-3 rounded-r-none bg-transparent hover:bg-white/10 shadow-none app-no-drag"
-                      onClick={handleNewHost}
-                    >
-                      <Plus size={14} className="mr-2" /> {t("vault.hosts.newHost")}
-                    </Button>
-                    <DropdownTrigger asChild>
-                      <Button
-                        size="sm"
-                        className="h-10 px-2 rounded-l-none bg-transparent hover:bg-white/10 border-l border-primary-foreground/20 shadow-none app-no-drag"
-                      >
-                        <ChevronDown size={14} />
-                      </Button>
-                    </DropdownTrigger>
-                  </div>
-                  <DropdownContent className="w-44" align="end" alignToParent>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        setTargetParentPath(selectedGroupPath);
-                        setNewFolderName("");
-                        setIsNewFolderOpen(true);
-                      }}
-                    >
-                      <FolderTree size={14} /> {t("vault.hosts.newGroup")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        setIsImportOpen(true);
-                      }}
-                    >
-                      <Upload size={14} /> {t("vault.hosts.import")}
-                    </Button>
-                  </DropdownContent>
-                </Dropdown>
-              </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                className={cn(
-                  "h-10 px-3 app-no-drag",
-                  currentSection === "hosts" &&
-                  "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-                )}
-                onClick={onCreateLocalTerminal}
-              >
-                <TerminalSquare size={14} className="mr-2" /> {t("common.terminal")}
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                className={cn(
-                  "h-10 px-3 app-no-drag",
-                  currentSection === "hosts" &&
-                  "bg-foreground/5 text-foreground hover:bg-foreground/10 border-border/40",
-                )}
-                onClick={() => setIsSerialModalOpen(true)}
-              >
-                <Usb size={14} className="mr-2" /> {t("serial.button")}
+              <Button onClick={handleNewHost}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Host
               </Button>
             </div>
-          </header>
-        )}
 
-        {currentSection !== "port" &&
-          currentSection !== "keys" &&
-          currentSection !== "knownhosts" &&
-          currentSection !== "snippets" &&
-          currentSection !== "logs" && (
-            <div className="flex-1 overflow-auto px-4 py-4 space-y-6">
-              {currentSection === "hosts" && (
-                <>
-                  <section className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold">
-                      <button
-                        className="text-primary hover:underline"
-                        onClick={() => setSelectedGroupPath(null)}
-                      >
-                        {t("vault.hosts.allHosts")}
-                      </button>
-                      {selectedGroupPath &&
-                        selectedGroupPath
-                          .split("/")
-                          .filter(Boolean)
-                          .map((part, idx, arr) => {
-                            const crumbPath = arr.slice(0, idx + 1).join("/");
-                            const isLast = idx === arr.length - 1;
-                            return (
-                              <span
-                                key={crumbPath}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-muted-foreground">›</span>
-                                <button
-                                  className={cn(
-                                    isLast
-                                      ? "text-foreground font-semibold"
-                                      : "text-primary hover:underline",
-                                  )}
-                                  onClick={() =>
-                                    setSelectedGroupPath(crumbPath)
-                                  }
-                                >
-                                  {part}
-                                </button>
-                              </span>
-                            );
-                          })}
-                    </div>
-                    {displayedGroups.length > 0 && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-muted-foreground">
-                            {t("vault.groups.title")}
-                          </h3>
-                          <div className="text-xs text-muted-foreground">
-                            {t("vault.groups.total", { count: displayedGroups.length })}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div
-                      className={cn(
-                        displayedGroups.length === 0 ? "hidden" : "",
-                        viewMode === "grid"
-                          ? "grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                          : "flex flex-col gap-0",
-                      )}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const hostId = e.dataTransfer.getData("host-id");
-                        const groupPath = e.dataTransfer.getData("group-path");
-                        if (hostId) moveHostToGroup(hostId, selectedGroupPath);
-                        if (groupPath && selectedGroupPath !== null)
-                          moveGroup(groupPath, selectedGroupPath);
-                      }}
-                    >
-                      {displayedGroups.map((node) => (
-                        <ContextMenu key={node.path}>
-                          <ContextMenuTrigger asChild>
-                            <div
-                              className={cn(
-                                "group cursor-pointer",
-                                viewMode === "grid"
-                                  ? "soft-card elevate rounded-xl h-[68px] px-3 py-2"
-                                  : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
-                              )}
-                              draggable
-                              onDragStart={(e) =>
-                                e.dataTransfer.setData("group-path", node.path)
-                              }
-                              onDoubleClick={() =>
-                                setSelectedGroupPath(node.path)
-                              }
-                              onClick={() => setSelectedGroupPath(node.path)}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const hostId =
-                                  e.dataTransfer.getData("host-id");
-                                const groupPath =
-                                  e.dataTransfer.getData("group-path");
-                                if (hostId) moveHostToGroup(hostId, node.path);
-                                if (groupPath) moveGroup(groupPath, node.path);
-                              }}
-                            >
-                              <div className="flex items-center gap-3 h-full">
-                                <div className="h-11 w-11 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
-                                  <FolderTree size={20} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-sm font-semibold truncate">
-                                    {node.name}
-                                  </div>
-                                  <div className="text-[11px] text-muted-foreground">
-                                    {t("vault.groups.hostsCount", { count: node.hosts.length })}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </ContextMenuTrigger>
-                          <ContextMenuContent>
-                            <ContextMenuItem
-                              onClick={() => {
-                                setTargetParentPath(node.path);
-                                setNewFolderName("");
-                                setIsNewFolderOpen(true);
-                              }}
-                            >
-                              <FolderPlus className="mr-2 h-4 w-4" /> {t("vault.groups.newSubgroup")}
-                            </ContextMenuItem>
-                            <ContextMenuItem
-                              onClick={() => {
-                                setRenameTargetPath(node.path);
-                                setRenameGroupName(node.name);
-                                setRenameGroupError(null);
-                                setIsRenameGroupOpen(true);
-                              }}
-                            >
-                              <Edit2 className="mr-2 h-4 w-4" /> {t("vault.groups.rename")}
-                            </ContextMenuItem>
-                            <ContextMenuItem
-                              className="text-destructive"
-                              onClick={() => deleteGroupPath(node.path)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> {t("vault.groups.delete")}
-                            </ContextMenuItem>
-                          </ContextMenuContent>
-                        </ContextMenu>
-                      ))}
-                    </div>
-                  </section>
-
-                  <section className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-muted-foreground">
-                        {t("vault.nav.hosts")}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>
-                          {t("vault.hosts.header.entries", { count: displayedHosts.length })}
-                        </span>
-                        <div className="bg-secondary/80 border border-border/70 rounded-md px-2 py-1 text-[11px]">
-                          {t("vault.hosts.header.live", { count: sessions.length })}
-                        </div>
+            {/* Host List */}
+            <div className="grid gap-2">
+              {filteredHosts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchQuery
+                    ? "No hosts match your search"
+                    : "No SMB hosts configured. Click 'Add Host' to get started."}
+                </div>
+              ) : (
+                filteredHosts.map((host) => (
+                  <div
+                    key={host.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => handleEditHost(host)}
+                  >
+                    <div>
+                      <div className="font-medium">{host.label}</div>
+                      <div className="text-sm text-muted-foreground">
+                        \\{host.hostname}\{host.share || "..."}
+                        {host.group && (
+                          <span className="ml-2 text-xs">({host.group})</span>
+                        )}
                       </div>
                     </div>
-                    <div
-                      className={cn(
-                        viewMode === "grid"
-                          ? "grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                          : "flex flex-col gap-0",
-                      )}
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onConnect(host);
+                      }}
                     >
-                      {displayedHosts.map((host) => {
-                        const safeHost = sanitizeHost(host);
-                        const distroBadge = {
-                          text: (safeHost.os || "L")[0].toUpperCase(),
-                          label: safeHost.distro || safeHost.os || "Linux",
-                        };
-                        return (
-                          <ContextMenu key={host.id}>
-                            <ContextMenuTrigger>
-                              <div
-                                className={cn(
-                                  "group cursor-pointer",
-                                  viewMode === "grid"
-                                    ? "soft-card elevate rounded-xl h-[68px] px-3 py-2"
-                                    : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
-                                )}
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.effectAllowed = "move";
-                                  e.dataTransfer.setData("host-id", host.id);
-                                }}
-                                onClick={() => handleHostConnect(safeHost)}
-                              >
-                                <div className="flex items-center gap-3 h-full">
-                                  <DistroAvatar
-                                    host={safeHost}
-                                    fallback={distroBadge.text}
-                                  />
-                                  <div className="min-w-0 flex flex-col justify-center gap-0.5 flex-1">
-                                    <div className="text-sm font-semibold truncate leading-5">
-                                      {safeHost.label}
-                                    </div>
-                                    <div className="text-[11px] text-muted-foreground font-mono truncate leading-4">
-                                      {safeHost.username}@{safeHost.hostname}
-                                    </div>
-                                  </div>
-                                  {viewMode === "list" && (
-                                    <>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleEditHost(host);
-                                        }}
-                                      >
-                                        <Edit2 size={14} />
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                              <ContextMenuItem
-                                onClick={() => handleHostConnect(host)}
-                              >
-                                <Plug className="mr-2 h-4 w-4" /> Connect
-                              </ContextMenuItem>
-                              <ContextMenuItem
-                                onClick={() => handleEditHost(host)}
-                              >
-                                <Edit2 className="mr-2 h-4 w-4" /> Edit
-                              </ContextMenuItem>
-                              <ContextMenuItem
-                                className="text-destructive"
-                                onClick={() => onDeleteHost(host.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </ContextMenuItem>
-                            </ContextMenuContent>
-                          </ContextMenu>
-                        );
-                      })}
-                      {displayedHosts.length === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-24 text-muted-foreground">
-                          <div className="h-16 w-16 rounded-2xl bg-secondary/80 flex items-center justify-center mb-4">
-                            <LayoutGrid size={32} className="opacity-60" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
-                            Set up your hosts
-                          </h3>
-                          <p className="text-sm text-center max-w-sm">
-                            Save hosts to quickly connect to your servers, VMs,
-                            and containers.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </section>
-                </>
+                      Connect
+                    </Button>
+                  </div>
+                ))
               )}
             </div>
-          )}
+          </div>
+        )}
 
-        {currentSection === "snippets" && (
+        {section === "snippets" && (
           <SnippetsManager
             snippets={snippets}
             packages={snippetPackages}
-            hosts={hosts}
-            customGroups={customGroups}
-            shellHistory={shellHistory}
-            onPackagesChange={onUpdateSnippetPackages}
-            onSave={(s) =>
-              onUpdateSnippets(
-                snippets.find((ex) => ex.id === s.id)
-                  ? snippets.map((ex) => (ex.id === s.id ? s : ex))
-                  : [...snippets, s],
-              )
-            }
-            onDelete={(id) =>
-              onUpdateSnippets(snippets.filter((s) => s.id !== id))
-            }
-            onRunSnippet={onRunSnippet}
-            availableKeys={keys}
-            onSaveHost={(host) => onUpdateHosts([...hosts, host])}
-            onCreateGroup={(groupPath) =>
-              onUpdateCustomGroups(
-                Array.from(new Set([...customGroups, groupPath])),
-              )
-            }
-          />
-        )}
-        {currentSection === "keys" && (
-          <KeychainManager
-            keys={keys}
-            identities={identities}
-            hosts={hosts}
-            customGroups={customGroups}
-            onSave={(k) => onUpdateKeys([...keys, k])}
-            onUpdate={(k) =>
-              onUpdateKeys(
-                keys.map((existing) => (existing.id === k.id ? k : existing)),
-              )
-            }
-            onDelete={(id) => onUpdateKeys(keys.filter((k) => k.id !== id))}
-            onSaveIdentity={(identity) =>
-              onUpdateIdentities(
-                identities.find((ex) => ex.id === identity.id)
-                  ? identities.map((ex) =>
-                    ex.id === identity.id ? identity : ex,
-                  )
-                  : [...identities, identity],
-              )
-            }
-            onDeleteIdentity={(id) =>
-              onUpdateIdentities(identities.filter((i) => i.id !== id))
-            }
-            onSaveHost={(host) => {
-              // Update existing host or add new one
-              const existingIndex = hosts.findIndex((h) => h.id === host.id);
-              if (existingIndex >= 0) {
-                onUpdateHosts(hosts.map((h) => (h.id === host.id ? host : h)));
-              } else {
-                onUpdateHosts([...hosts, host]);
-              }
-            }}
-            onCreateGroup={(groupPath) =>
-              onUpdateCustomGroups(
-                Array.from(new Set([...customGroups, groupPath])),
-              )
-            }
-          />
-        )}
-        {currentSection === "port" && (
-          <PortForwarding
-            hosts={hosts}
-            keys={keys}
-            identities={identities}
-            customGroups={customGroups}
-            onSaveHost={(host) => onUpdateHosts([...hosts, host])}
-            onCreateGroup={(groupPath) =>
-              onUpdateCustomGroups(
-                Array.from(new Set([...customGroups, groupPath])),
-              )
-            }
-          />
-        )}
-        {/* Always render KnownHostsManager but hide with CSS to prevent unmounting */}
-        <div
-          style={{
-            display: currentSection === "knownhosts" ? "contents" : "none",
-          }}
-        >
-          {knownHostsManagerElement}
-        </div>
-        {/* Connection Logs */}
-        {currentSection === "logs" && (
-          <ConnectionLogsManager
-            logs={connectionLogs}
-            hosts={hosts}
-            onToggleSaved={onToggleConnectionLogSaved}
-            onDelete={onDeleteConnectionLog}
-            onClearUnsaved={onClearUnsavedConnectionLogs}
-            onOpenLogView={onOpenLogView}
+            sessions={[]}
+            onUpdateSnippets={onUpdateSnippets}
+            onUpdatePackages={onUpdateSnippetPackages}
+            onRunSnippet={() => {}}
           />
         )}
       </div>
-
-      {/* Host Details Panel - positioned at VaultView root level for correct top alignment */}
-      {currentSection === "hosts" && isHostPanelOpen && (
-        <HostDetailsPanel
-          initialData={editingHost}
-          availableKeys={keys}
-          identities={identities}
-          groups={Array.from(
-            new Set([
-              ...customGroups,
-              ...hosts.map((h) => h.group || "General"),
-            ]),
-          )}
-          allTags={allTags}
-          allHosts={hosts}
-          defaultGroup={editingHost ? undefined : selectedGroupPath}
-          onSave={(host) => {
-            onUpdateHosts(
-              editingHost
-                ? hosts.map((h) => (h.id === host.id ? host : h))
-                : [...hosts, host],
-            );
-            setIsHostPanelOpen(false);
-            setEditingHost(null);
-          }}
-          onCancel={() => {
-            setIsHostPanelOpen(false);
-            setEditingHost(null);
-          }}
-          onCreateGroup={(groupPath) => {
-            onUpdateCustomGroups(
-              Array.from(new Set([...customGroups, groupPath])),
-            );
-          }}
-        />
-      )}
-
-      <Dialog open={isNewFolderOpen} onOpenChange={(open) => {
-        setIsNewFolderOpen(open);
-        if (!open) {
-          setNewFolderName("");
-          setTargetParentPath(null);
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {targetParentPath
-                ? t("vault.groups.createSubfolder")
-                : t("vault.groups.createRoot")}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              {t("vault.groups.createDialog.desc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label>{t("vault.groups.field.name")}</Label>
-            <Input
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder={t("vault.groups.placeholder.example")}
-              autoFocus
-              onKeyDown={(e) => e.key === "Enter" && submitNewFolder()}
-            />
-            {targetParentPath && (
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("vault.groups.parentLabel")}:{" "}
-                <span className="font-mono">{targetParentPath}</span>
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsNewFolderOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={submitNewFolder}>{t("common.create")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={isRenameGroupOpen}
-        onOpenChange={(open) => {
-          setIsRenameGroupOpen(open);
-          if (!open) {
-            setRenameTargetPath(null);
-            setRenameGroupName("");
-            setRenameGroupError(null);
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("vault.groups.renameDialogTitle")}</DialogTitle>
-            <DialogDescription className="sr-only">
-              {t("vault.groups.renameDialog.desc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-2">
-            <Label>{t("vault.groups.field.name")}</Label>
-            <Input
-              value={renameGroupName}
-              onChange={(e) => {
-                setRenameGroupName(e.target.value);
-                setRenameGroupError(null);
-              }}
-              placeholder={t("vault.groups.placeholder.example")}
-              autoFocus
-              onKeyDown={(e) => e.key === "Enter" && submitRenameGroup()}
-            />
-            {renameTargetPath && (
-              <p className="text-xs text-muted-foreground">
-                {t("vault.groups.pathLabel")}:{" "}
-                <span className="font-mono">{renameTargetPath}</span>
-              </p>
-            )}
-            {renameGroupError && (
-              <p className="text-xs text-destructive">{renameGroupError}</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsRenameGroupOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={submitRenameGroup}>{t("common.rename")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <ImportVaultDialog
-        open={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        onFileSelected={handleImportFileSelected}
-      />
-
-      {/* Quick Connect Wizard */}
-      {isQuickConnectOpen && quickConnectTarget && (
-        <QuickConnectWizard
-          open={isQuickConnectOpen}
-          target={quickConnectTarget}
-          keys={keys}
-          knownHosts={knownHosts}
-          onConnect={handleQuickConnect}
-          onSaveHost={handleQuickConnectSaveHost}
-          onClose={() => {
-            setIsQuickConnectOpen(false);
-            setQuickConnectTarget(null);
-            setQuickConnectWarnings([]);
-          }}
-          warnings={quickConnectWarnings}
-        />
-      )}
-
-      {/* Protocol Select Dialog */}
-      {protocolSelectHost && (
-        <Suspense fallback={null}>
-          <LazyProtocolSelectDialog
-            host={protocolSelectHost}
-            onSelect={handleProtocolSelect}
-            onCancel={() => setProtocolSelectHost(null)}
-          />
-        </Suspense>
-      )}
-
-      {/* Serial Connect Modal */}
-      <SerialConnectModal
-        open={isSerialModalOpen}
-        onClose={() => setIsSerialModalOpen(false)}
-        onConnect={(config) => {
-          if (onConnectSerial) {
-            onConnectSerial(config);
-          }
-        }}
-      />
     </div>
   );
-};
+});
 
-// Only re-render when data props change - isActive is now managed internally via store subscription
-const vaultViewAreEqual = (
-  prev: VaultViewProps,
-  next: VaultViewProps,
-): boolean => {
-  const isEqual =
-    prev.hosts === next.hosts &&
-    prev.keys === next.keys &&
-    prev.snippets === next.snippets &&
-    prev.snippetPackages === next.snippetPackages &&
-    prev.customGroups === next.customGroups &&
-    prev.knownHosts === next.knownHosts &&
-    prev.shellHistory === next.shellHistory &&
-    prev.connectionLogs === next.connectionLogs &&
-    prev.sessions === next.sessions;
-
-  return isEqual;
-};
-
-const MemoizedVaultViewInner = memo(VaultViewInner, vaultViewAreEqual);
-
-// Just export the memoized component directly
-// Visibility control is handled by parent (App.tsx)
-export const VaultView = MemoizedVaultViewInner;
-VaultView.displayName = "VaultView";
+export default VaultView;

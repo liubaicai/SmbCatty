@@ -1,5 +1,5 @@
 import { useCallback,useEffect,useLayoutEffect,useMemo,useState } from 'react';
-import { SyncConfig, TerminalSettings, DEFAULT_TERMINAL_SETTINGS, HotkeyScheme, CustomKeyBindings, DEFAULT_KEY_BINDINGS, KeyBinding, UILanguage } from '../../domain/models';
+import { SyncConfig, TerminalSettings, DEFAULT_TERMINAL_SETTINGS, HotkeyScheme, CustomKeyBindings, DEFAULT_KEY_BINDINGS, KeyBinding, UILanguage, TerminalTheme } from '../../domain/models';
 import {
 STORAGE_KEY_COLOR,
 STORAGE_KEY_SYNC,
@@ -16,10 +16,9 @@ STORAGE_KEY_UI_LANGUAGE,
 STORAGE_KEY_ACCENT_MODE,
 STORAGE_KEY_UI_THEME_LIGHT,
 STORAGE_KEY_UI_THEME_DARK,
-STORAGE_KEY_SFTP_DOUBLE_CLICK_BEHAVIOR,
+STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR,
 } from '../../infrastructure/config/storageKeys';
 import { DEFAULT_UI_LOCALE, resolveSupportedLocale } from '../../infrastructure/config/i18n';
-import { TERMINAL_THEMES } from '../../infrastructure/config/terminalThemes';
 import { DEFAULT_FONT_SIZE } from '../../infrastructure/config/fonts';
 import { DARK_UI_THEMES, LIGHT_UI_THEMES, UiThemeTokens, getUiThemeById } from '../../infrastructure/config/uiThemes';
 import { useAvailableFonts } from './fontStore';
@@ -31,14 +30,43 @@ const DEFAULT_LIGHT_UI_THEME = 'snow';
 const DEFAULT_DARK_UI_THEME = 'midnight';
 const DEFAULT_ACCENT_MODE: 'theme' | 'custom' = 'theme';
 const DEFAULT_CUSTOM_ACCENT = '221.2 83.2% 53.3%';
-const DEFAULT_TERMINAL_THEME = 'smbcatty-dark';
+const _DEFAULT_TERMINAL_THEME_ID = 'smbcatty-dark';
 const DEFAULT_FONT_FAMILY = 'menlo';
 // Auto-detect default hotkey scheme based on platform
 const DEFAULT_HOTKEY_SCHEME: HotkeyScheme =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
     ? 'mac'
     : 'pc';
-const DEFAULT_SFTP_DOUBLE_CLICK_BEHAVIOR: 'open' | 'transfer' = 'open';
+const DEFAULT_SMB_DOUBLE_CLICK_BEHAVIOR: 'open' | 'transfer' = 'open';
+
+// Placeholder terminal theme for settings compatibility
+const DEFAULT_TERMINAL_THEME: TerminalTheme = {
+  id: 'smbcatty-dark',
+  name: 'SmbCatty Dark',
+  type: 'dark',
+  colors: {
+    background: '#1e1e1e',
+    foreground: '#d4d4d4',
+    cursor: '#d4d4d4',
+    selection: '#264f78',
+    black: '#000000',
+    red: '#cd3131',
+    green: '#0dbc79',
+    yellow: '#e5e510',
+    blue: '#2472c8',
+    magenta: '#bc3fbc',
+    cyan: '#11a8cd',
+    white: '#e5e5e5',
+    brightBlack: '#666666',
+    brightRed: '#f14c4c',
+    brightGreen: '#23d18b',
+    brightYellow: '#f5f543',
+    brightBlue: '#3b8eea',
+    brightMagenta: '#d670d6',
+    brightCyan: '#29b8db',
+    brightWhite: '#e5e5e5',
+  }
+};
 
 const readStoredString = (key: string): string | null => {
   const raw = localStorageAdapter.readString(key);
@@ -158,8 +186,8 @@ export const useSettingsState = () => {
     localStorageAdapter.readString(STORAGE_KEY_CUSTOM_CSS) || ''
   );
   const [sftpDoubleClickBehavior, setSftpDoubleClickBehavior] = useState<'open' | 'transfer'>(() => {
-    const stored = readStoredString(STORAGE_KEY_SFTP_DOUBLE_CLICK_BEHAVIOR);
-    return (stored === 'open' || stored === 'transfer') ? stored : DEFAULT_SFTP_DOUBLE_CLICK_BEHAVIOR;
+    const stored = readStoredString(STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR);
+    return (stored === 'open' || stored === 'transfer') ? stored : DEFAULT_SMB_DOUBLE_CLICK_BEHAVIOR;
   });
 
   // Helper to notify other windows about settings changes via IPC
@@ -380,7 +408,7 @@ export const useSettingsState = () => {
         }
       }
       // Sync SFTP double-click behavior from other windows
-      if (e.key === STORAGE_KEY_SFTP_DOUBLE_CLICK_BEHAVIOR && e.newValue) {
+      if (e.key === STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR && e.newValue) {
         if ((e.newValue === 'open' || e.newValue === 'transfer') && e.newValue !== sftpDoubleClickBehavior) {
           setSftpDoubleClickBehavior(e.newValue);
         }
@@ -442,8 +470,8 @@ export const useSettingsState = () => {
 
   // Persist SFTP double-click behavior
   useEffect(() => {
-    localStorageAdapter.writeString(STORAGE_KEY_SFTP_DOUBLE_CLICK_BEHAVIOR, sftpDoubleClickBehavior);
-    notifySettingsChanged(STORAGE_KEY_SFTP_DOUBLE_CLICK_BEHAVIOR, sftpDoubleClickBehavior);
+    localStorageAdapter.writeString(STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR, sftpDoubleClickBehavior);
+    notifySettingsChanged(STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR, sftpDoubleClickBehavior);
   }, [sftpDoubleClickBehavior, notifySettingsChanged]);
 
   // Get merged key bindings (defaults + custom overrides)
@@ -499,8 +527,8 @@ export const useSettingsState = () => {
   }, []);
 
   const currentTerminalTheme = useMemo(
-    () => TERMINAL_THEMES.find(t => t.id === terminalThemeId) || TERMINAL_THEMES[0],
-    [terminalThemeId]
+    () => DEFAULT_TERMINAL_THEME,
+    []
   );
 
   const currentTerminalFont = useMemo(

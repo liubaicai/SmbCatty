@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { normalizeDistroId, sanitizeHost } from "../../domain/host";
+import { sanitizeHost } from "../../domain/host";
 import {
   ConnectionLog,
   Host,
@@ -241,12 +241,11 @@ export const useVaultState = () => {
       id: `host-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       label: knownHost.hostname,
       hostname: knownHost.hostname,
-      port: knownHost.port,
-      username: "", // Will be set when connecting
-      os: "linux",
+      port: 445, // SMB default port
+      share: "",
+      username: "",
       group: "",
       tags: [],
-      protocol: "ssh",
     };
 
     // Update the known host to mark it as converted using functional update
@@ -414,15 +413,9 @@ export const useVaultState = () => {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const updateHostDistro = useCallback((hostId: string, distro: string) => {
-    const normalized = normalizeDistroId(distro);
-    setHosts((prev) => {
-      const next = prev.map((h) =>
-        h.id === hostId ? { ...h, distro: normalized } : h,
-      );
-      localStorageAdapter.write(STORAGE_KEY_HOSTS, next);
-      return next;
-    });
+  // Stub for compatibility - no distro for SMB hosts
+  const updateHostDistro = useCallback((_hostId: string, _distro: string) => {
+    // No-op for SMB client
   }, []);
 
   const exportData = useCallback(
