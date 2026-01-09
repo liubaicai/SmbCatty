@@ -10,8 +10,7 @@ import { useWindowControls } from './application/state/useWindowControls';
 import { initializeFonts } from './application/state/fontStore';
 import { I18nProvider, useI18n } from './application/i18n/I18nProvider';
 import { matchesKeyBinding } from './domain/models';
-import { resolveHostAuth } from './domain/sshAuth';
-import { netcattyBridge } from './infrastructure/services/smbcattyBridge';
+import { smbcattyBridge } from './infrastructure/services/smbcattyBridge';
 import { TopTabs } from './components/TopTabs';
 import { Button } from './components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
@@ -588,7 +587,7 @@ function App({ settings }: { settings: SettingsState }) {
   useEffect(() => {
     void (async () => {
       try {
-        const bridge = netcattyBridge.get();
+        const bridge = smbcattyBridge.get();
         const info = await bridge?.getSystemInfo?.();
         if (info) {
           systemInfoRef.current = info;
@@ -969,7 +968,7 @@ function AppWithProviders() {
         setTimeout(() => splash.remove(), 200);
       }
       // Notify main process that renderer is ready
-      netcattyBridge.get()?.rendererReady?.();
+      smbcattyBridge.get()?.rendererReady?.();
     } catch {
       // ignore
     }

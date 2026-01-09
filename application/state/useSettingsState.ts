@@ -31,7 +31,7 @@ const DEFAULT_LIGHT_UI_THEME = 'snow';
 const DEFAULT_DARK_UI_THEME = 'midnight';
 const DEFAULT_ACCENT_MODE: 'theme' | 'custom' = 'theme';
 const DEFAULT_CUSTOM_ACCENT = '221.2 83.2% 53.3%';
-const DEFAULT_TERMINAL_THEME = 'netcatty-dark';
+const DEFAULT_TERMINAL_THEME = 'smbcatty-dark';
 const DEFAULT_FONT_FAMILY = 'menlo';
 // Auto-detect default hotkey scheme based on platform
 const DEFAULT_HOTKEY_SCHEME: HotkeyScheme =
@@ -431,10 +431,10 @@ export const useSettingsState = () => {
     notifySettingsChanged(STORAGE_KEY_CUSTOM_CSS, customCSS);
 
     // Apply custom CSS to document
-    let styleEl = document.getElementById('netcatty-custom-css') as HTMLStyleElement | null;
+    let styleEl = document.getElementById('smbcatty-custom-css') as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement('style');
-      styleEl.id = 'netcatty-custom-css';
+      styleEl.id = 'smbcatty-custom-css';
       document.head.appendChild(styleEl);
     }
     styleEl.textContent = customCSS;

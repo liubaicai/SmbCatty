@@ -260,7 +260,7 @@ const sessions = new Map();
 const sftpClients = new Map();
 const keyRoot = path.join(os.homedir(), ".smbcatty", "keys");
 let cloudSyncSessionPassword = null;
-const CLOUD_SYNC_PASSWORD_FILE = "netcatty_cloud_sync_master_password_v1";
+const CLOUD_SYNC_PASSWORD_FILE = "smbcatty_cloud_sync_master_password_v1";
 
 // Key management helpers
 const ensureKeyDir = () => {
@@ -491,7 +491,7 @@ const registerBridges = (win) => {
   ipcMain.handle("smbcatty:sftp:downloadToTemp", async (_event, { sftpId, remotePath, fileName }) => {
     const client = require("./bridges/sftpBridge.cjs");
     const tempDir = os.tmpdir();
-    const tempFileName = `netcatty_${Date.now()}_${fileName}`;
+    const tempFileName = `smbcatty_${Date.now()}_${fileName}`;
     const localPath = path.join(tempDir, tempFileName);
     
     // Get the sftp client and download file

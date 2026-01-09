@@ -11,7 +11,7 @@ interface BackupData {
 
 export const syncToGist = async (token: string, gistId: string | undefined, data: Omit<BackupData, 'timestamp' | 'version'>): Promise<string> => {
   const payload = {
-    description: "SmbCatty SSH Config Backup",
+    description: "SmbCatty SMB Config Backup",
     public: false,
     files: {
       "smbcatty-config.json": {
