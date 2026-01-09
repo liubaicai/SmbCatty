@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
-import { useActiveTabId, useIsVaultActive } from './application/state/activeTabStore';
+import React, { useCallback, useEffect, useMemo, useState, Suspense, lazy } from 'react';
+import { useIsVaultActive } from './application/state/activeTabStore';
 import { useAutoSync } from './application/state/useAutoSync';
 import { useSettingsState } from './application/state/useSettingsState';
 import { useUpdateCheck } from './application/state/useUpdateCheck';
@@ -51,7 +51,7 @@ function App({ settings }: { settings: SettingsState }) {
   const [quickSearch, setQuickSearch] = useState('');
   // Navigation state for VaultView sections
   const [navigateToSection, setNavigateToSection] = useState<VaultSection | null>(null);
-  const [activeTabId, setActiveTabId] = useState('vault');
+  const [_activeTabId, setActiveTabId] = useState('vault');
 
   const {
     theme,

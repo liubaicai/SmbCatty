@@ -1,210 +1,90 @@
-/**
- * Settings Page - Standalone settings window content
- * This component is rendered in a separate Electron window
- */
-import { AppWindow, Cloud, FileType, Keyboard, Palette, TerminalSquare, X } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
-import { useSettingsState } from "../application/state/useSettingsState";
-import { useVaultState } from "../application/state/useVaultState";
-import { useWindowControls } from "../application/state/useWindowControls";
-import { I18nProvider, useI18n } from "../application/i18n/I18nProvider";
-import SettingsApplicationTab from "./SettingsApplicationTab";
-import SettingsAppearanceTab from "./settings/tabs/SettingsAppearanceTab";
-import SettingsFileAssociationsTab from "./settings/tabs/SettingsFileAssociationsTab";
-import SettingsShortcutsTab from "./settings/tabs/SettingsShortcutsTab";
-import SettingsTerminalTab from "./settings/tabs/SettingsTerminalTab";
-import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import type { TerminalFont } from "../infrastructure/config/fonts";
+import React from 'react';
+import { useSettingsState } from '../application/state/useSettingsState';
+import { useVaultState } from '../application/state/useVaultState';
+import SettingsAppearanceTab from './SettingsApplicationTab';
+import SettingsShortcutsTab from './settings/tabs/SettingsShortcutsTab';
+import SettingsSyncTab from './settings/tabs/SettingsSyncTab';
 
-const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+const tabs = [
+  { id: 'appearance', label: 'Appearance' },
+  { id: 'shortcuts', label: 'Shortcuts' },
+  { id: 'sync', label: 'Cloud Sync' },
+] as const;
 
-type SettingsState = ReturnType<typeof useSettingsState> & {
-    availableFonts: TerminalFont[];
-};
+type TabId = typeof tabs[number]['id'];
 
-const SettingsSyncTab = React.lazy(() => import("./settings/tabs/SettingsSyncTab"));
+const SettingsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = React.useState<TabId>('appearance');
+  
+  const {
+    hotkeyScheme,
+    setHotkeyScheme,
+    keyBindings,
+    updateKeyBinding,
+    resetKeyBinding,
+    resetAllKeyBindings,
+    setIsHotkeyRecording,
+  } = useSettingsState();
 
-const SettingsSyncTabWithVault: React.FC = () => {
-    const {
-        hosts,
-        keys,
-        identities,
-        snippets,
-        importDataFromString,
-        clearVaultData,
-    } = useVaultState();
+  const {
+    hosts,
+    keys,
+    identities,
+    snippets,
+    importDataFromString,
+    clearVaultData,
+  } = useVaultState();
 
-    return (
-        <SettingsSyncTab
-            hosts={hosts}
-            keys={keys}
-            identities={identities}
-            snippets={snippets}
-            importDataFromString={importDataFromString}
-            clearVaultData={clearVaultData}
-        />
-    );
-};
-
-const SettingsPageContent: React.FC<{ settings: SettingsState }> = ({ settings }) => {
-    const { t } = useI18n();
-    const { notifyRendererReady, closeSettingsWindow } = useWindowControls();
-    const [activeTab, setActiveTab] = useState("application");
-    const [mountedTabs, setMountedTabs] = useState(() => new Set(["application"]));
-
-    useEffect(() => {
-        notifyRendererReady();
-    }, [notifyRendererReady]);
-
-    useEffect(() => {
-        setMountedTabs((prev) => {
-            if (prev.has(activeTab)) return prev;
-            const next = new Set(prev);
-            next.add(activeTab);
-            return next;
-        });
-    }, [activeTab]);
-
-    const handleClose = useCallback(() => {
-        closeSettingsWindow();
-    }, [closeSettingsWindow]);
-
-    return (
-        <div className="h-screen flex flex-col bg-background text-foreground">
-            <div className="shrink-0 border-b border-border app-drag">
-                <div className="flex items-center justify-between px-4 pt-3">
-                    {isMac && <div className="h-6" />}
-                </div>
-                <div className="flex items-center justify-between px-4 py-2">
-                    <h1 className="text-lg font-semibold">{t("settings.title")}</h1>
-                    {!isMac && (
-                        <button
-                            onClick={handleClose}
-                            className="app-no-drag w-8 h-8 flex items-center justify-center rounded-md hover:bg-destructive/20 hover:text-destructive transition-colors text-muted-foreground"
-                            title={t("common.close")}
-                        >
-                            <X size={16} />
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                orientation="vertical"
-                className="flex-1 flex overflow-hidden"
+  return (
+    <div className="h-screen flex flex-col bg-background text-foreground">
+      <div className="border-b p-4">
+        <h1 className="text-xl font-semibold">Settings</h1>
+      </div>
+      
+      <div className="flex flex-1 min-h-0">
+        <div className="w-48 border-r p-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full text-left px-3 py-2 rounded ${
+                activeTab === tab.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted'
+              }`}
             >
-                <div className="w-56 border-r border-border flex flex-col shrink-0 px-3 py-3">
-                    <TabsList className="flex flex-col h-auto bg-transparent gap-1 p-0 justify-start">
-                        <TabsTrigger
-                            value="application"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <AppWindow size={14} /> {t("settings.tab.application")}
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="appearance"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <Palette size={14} /> {t("settings.tab.appearance")}
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="terminal"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <TerminalSquare size={14} /> {t("settings.tab.terminal")}
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="shortcuts"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <Keyboard size={14} /> {t("settings.tab.shortcuts")}
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="file-associations"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <FileType size={14} /> {t("settings.tab.sftpFileAssociations")}
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="sync"
-                            className="w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors"
-                        >
-                            <Cloud size={14} /> {t("settings.tab.syncCloud")}
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-
-                <div className="flex-1 h-full flex flex-col min-h-0 bg-muted/10">
-                    {mountedTabs.has("application") && <SettingsApplicationTab />}
-
-                    {mountedTabs.has("appearance") && (
-                        <SettingsAppearanceTab
-                            theme={settings.theme}
-                            setTheme={settings.setTheme}
-                            lightUiThemeId={settings.lightUiThemeId}
-                            setLightUiThemeId={settings.setLightUiThemeId}
-                            darkUiThemeId={settings.darkUiThemeId}
-                            setDarkUiThemeId={settings.setDarkUiThemeId}
-                            accentMode={settings.accentMode}
-                            setAccentMode={settings.setAccentMode}
-                            customAccent={settings.customAccent}
-                            setCustomAccent={settings.setCustomAccent}
-                            uiLanguage={settings.uiLanguage}
-                            setUiLanguage={settings.setUiLanguage}
-                            customCSS={settings.customCSS}
-                            setCustomCSS={settings.setCustomCSS}
-                        />
-                    )}
-
-                    {mountedTabs.has("terminal") && (
-                        <SettingsTerminalTab
-                            terminalThemeId={settings.terminalThemeId}
-                            setTerminalThemeId={settings.setTerminalThemeId}
-                            terminalFontFamilyId={settings.terminalFontFamilyId}
-                            setTerminalFontFamilyId={settings.setTerminalFontFamilyId}
-                            terminalFontSize={settings.terminalFontSize}
-                            setTerminalFontSize={settings.setTerminalFontSize}
-                            terminalSettings={settings.terminalSettings}
-                            updateTerminalSetting={settings.updateTerminalSetting}
-                            availableFonts={settings.availableFonts}
-                        />
-                    )}
-
-                    {mountedTabs.has("shortcuts") && (
-                        <SettingsShortcutsTab
-                            hotkeyScheme={settings.hotkeyScheme}
-                            setHotkeyScheme={settings.setHotkeyScheme}
-                            keyBindings={settings.keyBindings}
-                            updateKeyBinding={settings.updateKeyBinding}
-                            resetKeyBinding={settings.resetKeyBinding}
-                            resetAllKeyBindings={settings.resetAllKeyBindings}
-                            setIsHotkeyRecording={settings.setIsHotkeyRecording}
-                        />
-                    )}
-
-                    {mountedTabs.has("file-associations") && (
-                        <SettingsFileAssociationsTab />
-                    )}
-
-                    {mountedTabs.has("sync") && (
-                        <React.Suspense fallback={null}>
-                            <SettingsSyncTabWithVault />
-                        </React.Suspense>
-                    )}
-                </div>
-            </Tabs>
+              {tab.label}
+            </button>
+          ))}
         </div>
-    );
+        
+        <div className="flex-1 overflow-auto p-4">
+          {activeTab === 'appearance' && <SettingsAppearanceTab />}
+          {activeTab === 'shortcuts' && (
+            <SettingsShortcutsTab
+              hotkeyScheme={hotkeyScheme}
+              setHotkeyScheme={setHotkeyScheme}
+              keyBindings={keyBindings}
+              updateKeyBinding={updateKeyBinding}
+              resetKeyBinding={resetKeyBinding}
+              resetAllKeyBindings={resetAllKeyBindings}
+              setIsHotkeyRecording={setIsHotkeyRecording}
+            />
+          )}
+          {activeTab === 'sync' && (
+            <SettingsSyncTab
+              hosts={hosts}
+              keys={keys}
+              identities={identities}
+              snippets={snippets}
+              importDataFromString={importDataFromString}
+              clearVaultData={clearVaultData}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default function SettingsPage() {
-    const settings = useSettingsState();
-
-    return (
-        <I18nProvider locale={settings.uiLanguage}>
-            <SettingsPageContent settings={settings} />
-        </I18nProvider>
-    );
-}
+export default SettingsPage;
