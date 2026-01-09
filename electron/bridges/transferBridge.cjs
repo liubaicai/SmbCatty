@@ -152,7 +152,7 @@ async function startTransfer(event, payload) {
       
     } else if (sourceType === 'sftp' && targetType === 'sftp') {
       // SFTP to SFTP: download to temp then upload
-      const tempPath = path.join(os.tmpdir(), `netcatty-transfer-${transferId}`);
+      const tempPath = path.join(os.tmpdir(), `smbcatty-transfer-${transferId}`);
       
       const sourceClient = sftpClients.get(sourceSftpId);
       const targetClient = sftpClients.get(targetSftpId);

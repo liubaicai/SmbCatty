@@ -32,7 +32,7 @@ const rendererReadyCallbacksByWebContentsId = new Map();
 const DEBUG_WINDOWS = process.env.SMBCATTY_DEBUG_WINDOWS === "1";
 const OAUTH_DEFAULT_WIDTH = 600;
 const OAUTH_DEFAULT_HEIGHT = 700;
-const OAUTH_OVERLAY_ID = "__netcatty_oauth_loading__";
+const OAUTH_OVERLAY_ID = "__smbcatty_oauth_loading__";
 const WINDOW_STATE_FILE = "window-state.json";
 const DEFAULT_WINDOW_WIDTH = 1400;
 const DEFAULT_WINDOW_HEIGHT = 900;
@@ -353,13 +353,13 @@ function attachOAuthLoadingOverlay(win) {
       border-radius: 999px;
       border: 3px solid rgba(148, 163, 184, 0.35);
       border-top-color: currentColor;
-      animation: netcatty-oauth-spin 0.8s linear infinite;
+      animation: smbcatty-oauth-spin 0.8s linear infinite;
     }
     #${OAUTH_OVERLAY_ID} .label {
       font-size: 14px;
       letter-spacing: 0.04em;
     }
-    @keyframes netcatty-oauth-spin {
+    @keyframes smbcatty-oauth-spin {
       to { transform: rotate(360deg); }
     }
   `;
@@ -370,7 +370,7 @@ function attachOAuthLoadingOverlay(win) {
       const root = document.documentElement || document.body;
       const style = document.createElement("style");
       style.textContent = ${JSON.stringify(overlayStyle)};
-      style.setAttribute("data-netcatty-oauth", "style");
+      style.setAttribute("data-smbcatty-oauth", "style");
       (document.head || root).appendChild(style);
 
       const overlay = document.createElement("div");
@@ -385,7 +385,7 @@ function attachOAuthLoadingOverlay(win) {
     (() => {
       const overlay = document.getElementById("${OAUTH_OVERLAY_ID}");
       if (overlay) overlay.remove();
-      const style = document.querySelector('style[data-netcatty-oauth="style"]');
+      const style = document.querySelector('style[data-smbcatty-oauth="style"]');
       if (style) style.remove();
     })();
   `;
@@ -700,7 +700,7 @@ async function createWindow(electronModule, options) {
   }
 
   // Production mode - load via custom protocol.
-  await win.loadURL("app://netcatty/index.html");
+  await win.loadURL("app://smbcatty/index.html");
   
   onRegisterBridge?.(win);
   return win;
@@ -797,7 +797,7 @@ async function openSettingsWindow(electronModule, options) {
   }
 
   // Production mode - load via custom protocol.
-  await win.loadURL("app://netcatty/index.html#/settings");
+  await win.loadURL("app://smbcatty/index.html#/settings");
   
   return win;
 }

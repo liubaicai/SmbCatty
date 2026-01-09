@@ -8,7 +8,7 @@
 const ONEDRIVE_TOKEN_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
 const ONEDRIVE_GRAPH_API = "https://graph.microsoft.com/v1.0";
 const APP_FOLDER_PATH = "/drive/special/approot";
-const DEFAULT_SYNC_FILE_NAME = "netcatty-vault.json";
+const DEFAULT_SYNC_FILE_NAME = "smbcatty-vault.json";
 const DEFAULT_SCOPE =
   "https://graph.microsoft.com/Files.ReadWrite.AppFolder https://graph.microsoft.com/User.Read offline_access";
 

@@ -3,7 +3,7 @@ import { smbcattyBridge } from "../../infrastructure/services/smbcattyBridge";
 import type { RemoteFile } from "../../types";
 
 export const useSftpBackend = () => {
-  const openSftp = useCallback(async (options: NetcattySSHOptions) => {
+  const openSftp = useCallback(async (options: SmbCattySSHOptions) => {
     const bridge = smbcattyBridge.get();
     if (!bridge?.openSftp) throw new Error("SFTP bridge unavailable");
     return bridge.openSftp(options);
@@ -150,7 +150,7 @@ export const useSftpBackend = () => {
 
   const startStreamTransfer = useCallback(
     async (
-      options: Parameters<NonNullable<NetcattyBridge["startStreamTransfer"]>>[0],
+      options: Parameters<NonNullable<SmbCattyBridge["startStreamTransfer"]>>[0],
       onProgress?: (transferred: number, total: number, speed: number) => void,
       onComplete?: () => void,
       onError?: (error: string) => void,
@@ -168,7 +168,7 @@ export const useSftpBackend = () => {
     return bridge.cancelTransfer(transferId);
   }, []);
 
-  const onTransferProgress = useCallback((transferId: string, cb: Parameters<NonNullable<NetcattyBridge["onTransferProgress"]>>[1]) => {
+  const onTransferProgress = useCallback((transferId: string, cb: Parameters<NonNullable<SmbCattyBridge["onTransferProgress"]>>[1]) => {
     const bridge = smbcattyBridge.get();
     if (!bridge?.onTransferProgress) return undefined;
     return bridge.onTransferProgress(transferId, cb);

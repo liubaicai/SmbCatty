@@ -7,10 +7,10 @@ const net = require("node:net");
 const fs = require("node:fs");
 const path = require("node:path");
 const { Client: SSHClient, utils: sshUtils } = require("ssh2");
-const { SmbCattyAgent } = require("./netcattyAgent.cjs");
+const { SmbCattyAgent } = require("./smbcattyAgent.cjs");
 
 // Simple file logger for debugging
-const logFile = path.join(require("os").tmpdir(), "netcatty-ssh.log");
+const logFile = path.join(require("os").tmpdir(), "smbcatty-ssh.log");
 const log = (msg, data) => {
   const line = `[${new Date().toISOString()}] ${msg} ${data ? JSON.stringify(data) : ""}\n`;
   try { fs.appendFileSync(logFile, line); } catch {}
@@ -754,7 +754,7 @@ async function generateKeyPair(event, options) {
     
     const result = sshUtils.generateKeyPairSync(keyType, {
       bits: keyBits,
-      comment: comment || 'netcatty-generated-key',
+      comment: comment || 'smbcatty-generated-key',
     });
     
     const privateKey = result.private;

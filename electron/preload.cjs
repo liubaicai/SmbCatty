@@ -514,6 +514,6 @@ const api = {
     ipcRenderer.invoke("smbcatty:sftp:downloadToTemp", { sftpId, remotePath, fileName }),
 };
 
-// Merge with existing netcatty (if any) to avoid stale objects on hot reload
+// Merge with existing smbcatty (if any) to avoid stale objects on hot reload
 const existing = (typeof window !== "undefined" && window.smbcatty) ? window.smbcatty : {};
 contextBridge.exposeInMainWorld("smbcatty", { ...existing, ...api });

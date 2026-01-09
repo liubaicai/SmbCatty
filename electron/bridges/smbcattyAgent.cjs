@@ -11,7 +11,7 @@ const { BaseAgent } = require("ssh2/lib/agent.js");
 const { parseKey } = require("ssh2/lib/protocol/keyParser.js");
 
 // Simple file logger for debugging
-const logFile = path.join(require("os").tmpdir(), "netcatty-agent.log");
+const logFile = path.join(require("os").tmpdir(), "smbcatty-agent.log");
 const log = (msg, data) => {
   const line = `[${new Date().toISOString()}] ${msg} ${data ? JSON.stringify(data) : ""}\n`;
   try { fs.appendFileSync(logFile, line); } catch {}
@@ -19,7 +19,7 @@ const log = (msg, data) => {
 };
 
 const DUMMY_ED25519_PUB =
-  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB netcatty-agent-dummy";
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB smbcatty-agent-dummy";
 
 function parseOpenSshKeyLine(line) {
   if (typeof line !== "string" || !line.trim()) throw new Error("Empty OpenSSH key line");

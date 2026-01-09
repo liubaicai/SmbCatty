@@ -7,7 +7,7 @@ const {
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 
-const SYNC_FILE_NAME = "netcatty-vault.json";
+const SYNC_FILE_NAME = "smbcatty-vault.json";
 
 const normalizeEndpoint = (endpoint) => {
   const trimmed = String(endpoint || "").trim();

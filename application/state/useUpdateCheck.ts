@@ -105,9 +105,9 @@ export function useUpdateCheck(): UseUpdateCheckResult {
           latestRelease: {
             version: '1.0.0',
             tagName: 'v1.0.0',
-            name: 'Netcatty v1.0.0',
+            name: 'SmbCatty v1.0.0',
             body: 'Demo release for testing update notification',
-            htmlUrl: 'https://github.com/binaricat/Netcatty/releases',
+            htmlUrl: 'https://github.com/liubaicai/SmbCatty/releases',
             publishedAt: new Date().toISOString(),
             assets: [],
           },

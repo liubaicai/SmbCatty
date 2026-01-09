@@ -545,7 +545,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
 
   // Get host credentials
   const getHostCredentials = useCallback(
-    (host: Host): NetcattySSHOptions => {
+    (host: Host): SmbCattySSHOptions => {
       const resolved = resolveHostAuth({ host, keys, identities });
       const key = resolved.key || null;
       
@@ -561,7 +561,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
         : undefined;
       
       // Build jump hosts array if host chain is configured
-      let jumpHosts: NetcattyJumpHost[] | undefined;
+      let jumpHosts: SmbCattyJumpHost[] | undefined;
       if (host.hostChain?.hostIds && host.hostChain.hostIds.length > 0) {
         jumpHosts = host.hostChain.hostIds
           .map((hostId) => hosts.find((h) => h.id === hostId))
@@ -1225,7 +1225,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       ],
       "C:/Users/damao/Desktop": [
         {
-          name: "Netcatty",
+          name: "SmbCatty",
           type: "directory",
           size: 0,
           sizeFormatted: "--",
@@ -1249,7 +1249,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
           lastModifiedFormatted: formatDate(Date.now() - 43200000),
         },
       ],
-      "C:/Users/damao/Desktop/Netcatty": [
+      "C:/Users/damao/Desktop/SmbCatty": [
         {
           name: "src",
           type: "directory",
@@ -1355,7 +1355,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
       ],
       "/Users/damao/Desktop": [
         {
-          name: "Netcatty",
+          name: "SmbCatty",
           type: "directory",
           size: 0,
           sizeFormatted: "--",
@@ -1379,7 +1379,7 @@ export const useSftpState = (hosts: Host[], keys: SSHKey[], identities: Identity
           lastModifiedFormatted: formatDate(Date.now() - 43200000),
         },
       ],
-      "/Users/damao/Desktop/Netcatty": [
+      "/Users/damao/Desktop/SmbCatty": [
         {
           name: "src",
           type: "directory",

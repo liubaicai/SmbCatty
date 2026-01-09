@@ -9,7 +9,7 @@ const os = require("node:os");
 const net = require("node:net");
 const SftpClient = require("ssh2-sftp-client");
 const { Client: SSHClient } = require("ssh2");
-const { SmbCattyAgent } = require("./netcattyAgent.cjs");
+const { SmbCattyAgent } = require("./smbcattyAgent.cjs");
 
 // SFTP clients storage - shared reference passed from main
 let sftpClients = null;

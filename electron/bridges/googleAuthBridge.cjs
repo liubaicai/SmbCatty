@@ -9,7 +9,7 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 const GOOGLE_DRIVE_API = "https://www.googleapis.com/drive/v3";
 const GOOGLE_DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
-const DEFAULT_SYNC_FILE_NAME = "netcatty-vault.json";
+const DEFAULT_SYNC_FILE_NAME = "smbcatty-vault.json";
 
 const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
 
@@ -251,7 +251,7 @@ function registerHandlers(ipcMain, electronModule) {
     if (!isNonEmptyString(accessToken)) throw new Error("Missing accessToken");
     if (!syncedFile) throw new Error("Missing syncedFile");
 
-    const boundary = `----netcatty_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const boundary = `----smbcatty_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     const metadata = JSON.stringify({
       name: fileName,
       parents: ["appDataFolder"],
