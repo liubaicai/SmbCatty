@@ -2,7 +2,6 @@ import {
   LayoutGrid,
   Search,
   Shield,
-  TerminalSquare,
 } from "lucide-react";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
