@@ -1,4 +1,4 @@
-import { Bell, Copy, FileText, Folder, LayoutGrid, Minus, Moon, MoreHorizontal, Plus, Shield, Square, Sun, TerminalSquare, X } from 'lucide-react';
+import { Bell, Copy, FileText, LayoutGrid, Minus, Moon, MoreHorizontal, Plus, Shield, Square, Sun, TerminalSquare, X } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { activeTabStore, useActiveTabId } from '../application/state/activeTabStore';
 import { useWindowControls } from '../application/state/useWindowControls';
@@ -143,7 +143,6 @@ const TopTabsInner: React.FC<TopTabsProps> = ({
   const { maximize, isFullscreen, onFullscreenChanged } = useWindowControls();
   const activeTabId = useActiveTabId();
   const isVaultActive = activeTabId === 'vault';
-  const isSftpActive = activeTabId === 'sftp';
   const onSelectTab = activeTabStore.setActiveTabId;
 
   // Tab reorder drag state
@@ -199,7 +198,7 @@ const TopTabsInner: React.FC<TopTabsProps> = ({
 
   // Scroll to active tab when it changes
   useLayoutEffect(() => {
-    if (!activeTabId || activeTabId === 'vault' || activeTabId === 'sftp') return;
+    if (!activeTabId || activeTabId === 'vault') return;
     const container = tabsContainerRef.current;
     if (!container) return;
 
@@ -547,7 +546,7 @@ const TopTabsInner: React.FC<TopTabsProps> = ({
         className="h-8 px-3 flex items-center gap-2 app-drag"
         style={{ ...dragRegionStyle, paddingLeft: isMacClient && !isWindowFullscreen ? 76 : 12 }}
       >
-        {/* Fixed left tabs: Vaults and SFTP */}
+        {/* Fixed left tab: Vaults */}
         <div className="flex items-center gap-2 flex-shrink-0 app-drag">
           <div
             onClick={() => onSelectTab('vault')}
@@ -558,16 +557,6 @@ const TopTabsInner: React.FC<TopTabsProps> = ({
             style={isVaultActive ? { borderColor: 'hsl(var(--accent))' } : undefined}
           >
             <Shield size={14} /> Vaults
-          </div>
-          <div
-            onClick={() => onSelectTab('sftp')}
-            className={cn(
-              "h-6 px-3 rounded-md border text-xs font-semibold cursor-pointer flex items-center gap-2 app-no-drag",
-              isSftpActive ? "bg-accent/20 text-foreground" : "border-border/60 text-muted-foreground hover:border-accent/40 hover:text-foreground"
-            )}
-            style={isSftpActive ? { borderColor: 'hsl(var(--accent))' } : undefined}
-          >
-            <Folder size={14} /> SFTP
           </div>
         </div>
 
