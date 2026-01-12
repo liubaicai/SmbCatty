@@ -8,6 +8,7 @@ import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 import '@fontsource/jetbrains-mono/600.css';
 import App from './App';
+import { I18nProvider } from './application/i18n/I18nProvider';
 import { ToastProvider } from './components/ui/toast';
 
 const LazySettingsPage = lazy(() => import('./components/SettingsPage'));
@@ -32,11 +33,13 @@ const renderApp = () => {
   const route = getRoute();
   if (route === 'settings') {
     root.render(
-      <ToastProvider>
-        <Suspense fallback={null}>
-          <LazySettingsPage />
-        </Suspense>
-      </ToastProvider>
+      <I18nProvider>
+        <ToastProvider>
+          <Suspense fallback={null}>
+            <LazySettingsPage />
+          </Suspense>
+        </ToastProvider>
+      </I18nProvider>
     );
   } else {
     root.render(<App />);

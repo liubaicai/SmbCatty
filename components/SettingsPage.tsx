@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSettingsState } from '../application/state/useSettingsState';
 import { useVaultState } from '../application/state/useVaultState';
-import SettingsAppearanceTab from './SettingsApplicationTab';
+import SettingsAppearanceTab from './settings/tabs/SettingsAppearanceTab';
 import SettingsShortcutsTab from './settings/tabs/SettingsShortcutsTab';
 import SettingsSyncTab from './settings/tabs/SettingsSyncTab';
 
@@ -17,6 +17,20 @@ const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState<TabId>('appearance');
   
   const {
+    theme,
+    setTheme,
+    lightUiThemeId,
+    setLightUiThemeId,
+    darkUiThemeId,
+    setDarkUiThemeId,
+    accentMode,
+    setAccentMode,
+    customAccent,
+    setCustomAccent,
+    uiLanguage,
+    setUiLanguage,
+    customCSS,
+    setCustomCSS,
     hotkeyScheme,
     setHotkeyScheme,
     keyBindings,
@@ -59,7 +73,24 @@ const SettingsPage: React.FC = () => {
         </div>
         
         <div className="flex-1 overflow-auto p-4">
-          {activeTab === 'appearance' && <SettingsAppearanceTab />}
+          {activeTab === 'appearance' && (
+            <SettingsAppearanceTab
+              theme={theme}
+              setTheme={setTheme}
+              lightUiThemeId={lightUiThemeId}
+              setLightUiThemeId={setLightUiThemeId}
+              darkUiThemeId={darkUiThemeId}
+              setDarkUiThemeId={setDarkUiThemeId}
+              accentMode={accentMode}
+              setAccentMode={setAccentMode}
+              customAccent={customAccent}
+              setCustomAccent={setCustomAccent}
+              uiLanguage={uiLanguage}
+              setUiLanguage={setUiLanguage}
+              customCSS={customCSS}
+              setCustomCSS={setCustomCSS}
+            />
+          )}
           {activeTab === 'shortcuts' && (
             <SettingsShortcutsTab
               hotkeyScheme={hotkeyScheme}

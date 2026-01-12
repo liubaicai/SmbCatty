@@ -1,9 +1,7 @@
 import {
-  Folder,
   LayoutGrid,
   Search,
   Shield,
-  Terminal,
   TerminalSquare,
 } from "lucide-react";
 import React, { memo, useEffect, useRef, useState } from "react";
@@ -30,7 +28,6 @@ interface QuickSwitcherProps {
   onSelect: (host: Host) => void;
   onSelectTab: (tabId: string) => void;
   onClose: () => void;
-  onCreateLocalTerminal?: () => void;
   onCreateWorkspace?: () => void;
   keyBindings?: KeyBinding[];
 }
@@ -45,7 +42,6 @@ const QuickSwitcherInner: React.FC<QuickSwitcherProps> = ({
   onSelect,
   onSelectTab,
   onClose,
-  onCreateLocalTerminal,
   onCreateWorkspace,
   keyBindings,
 }) => {
@@ -110,15 +106,12 @@ const QuickSwitcherInner: React.FC<QuickSwitcherProps> = ({
       );
       // Tabs (built-in + sessions + workspaces)
       items.push({ type: "tab", id: "vault" });
-      items.push({ type: "tab", id: "sftp" });
       orphanSessions.forEach((s) =>
         items.push({ type: "tab", id: s.id, data: s }),
       );
       workspaces.forEach((w) =>
         items.push({ type: "workspace", id: w.id, data: w }),
       );
-      // Quick connect actions
-      items.push({ type: "action", id: "local-terminal" });
     } else {
       // Recent connections only
       results.forEach((host) =>
@@ -154,12 +147,6 @@ const QuickSwitcherInner: React.FC<QuickSwitcherProps> = ({
       case "workspace":
         onSelectTab(item.id);
         onClose();
-        break;
-      case "action":
-        if (item.id === "local-terminal" && onCreateLocalTerminal) {
-          onCreateLocalTerminal();
-          onClose();
-        }
         break;
     }
   };
@@ -299,35 +286,28 @@ const QuickSwitcherInner: React.FC<QuickSwitcherProps> = ({
                 </div>
 
                 {/* Built-in tabs */}
-                {["vault", "sftp"].map((tabId) => {
-                  const idx = getItemIndex("tab", tabId);
+                {(() => {
+                  const idx = getItemIndex("tab", "vault");
                   const isSelected = idx === selectedIndex;
-                  const icon =
-                    tabId === "vault" ? (
-                      <Shield size={16} />
-                    ) : (
-                      <Folder size={16} />
-                    );
-                  const label = tabId === "vault" ? "Vaults" : "SFTP";
 
                   return (
                     <div
-                      key={tabId}
+                      key="vault"
                       className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors ${isSelected ? "bg-primary/15" : "hover:bg-muted/50"
                         }`}
                       onClick={() => {
-                        onSelectTab(tabId);
+                        onSelectTab("vault");
                         onClose();
                       }}
                       onMouseEnter={() => setSelectedIndex(idx)}
                     >
                       <div className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground">
-                        {icon}
+                        <Shield size={16} />
                       </div>
-                      <span className="text-sm font-medium">{label}</span>
+                      <span className="text-sm font-medium">Vaults</span>
                     </div>
                   );
-                })}
+                })()}
 
                 {/* Workspaces */}
                 {workspaces.map((workspace) => {
@@ -380,39 +360,6 @@ const QuickSwitcherInner: React.FC<QuickSwitcherProps> = ({
                     </div>
                   );
                 })}
-              </div>
-
-              {/* Quick connect section */}
-              <div>
-                <div className="px-4 py-1.5">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Quick connect
-                  </span>
-                </div>
-
-                {/* Local Terminal */}
-                {onCreateLocalTerminal && (
-                  <div
-                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors ${getItemIndex("action", "local-terminal") === selectedIndex
-                      ? "bg-primary/15"
-                      : "hover:bg-muted/50"
-                      }`}
-                    onClick={() => {
-                      onCreateLocalTerminal();
-                      onClose();
-                    }}
-                    onMouseEnter={() =>
-                      setSelectedIndex(getItemIndex("action", "local-terminal"))
-                    }
-                  >
-                    <div className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground">
-                      <Terminal size={16} />
-                    </div>
-                    <span className="text-sm font-medium">{t("qs.localTerminal")}</span>
-                  </div>
-                )}
-
-                {/* Serial removed (not supported) */}
               </div>
             </div>
           )}

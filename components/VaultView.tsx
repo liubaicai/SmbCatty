@@ -10,7 +10,6 @@ import {
   SSHKey,
   ShellHistoryEntry,
   Snippet,
-  TerminalSession,
 } from "../types";
 import { AppLogo } from "./AppLogo";
 import HostDetailsPanel from "./HostDetailsPanel";
@@ -37,11 +36,8 @@ interface VaultViewProps {
   knownHosts: KnownHost[];
   shellHistory: ShellHistoryEntry[];
   connectionLogs: ConnectionLog[];
-  sessions: TerminalSession[];
   onOpenSettings: () => void;
   onOpenQuickSwitcher: () => void;
-  onCreateLocalTerminal: () => void;
-  onConnectSerial: () => void;
   onDeleteHost: (hostId: string) => void;
   onConnect: (host: Host) => void;
   onUpdateHosts: (hosts: Host[]) => void;

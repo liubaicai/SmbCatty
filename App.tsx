@@ -278,11 +278,8 @@ function App({ settings }: { settings: SettingsState }) {
             knownHosts={knownHosts}
             shellHistory={shellHistory}
             connectionLogs={connectionLogs}
-            sessions={[]}
             onOpenSettings={handleOpenSettings}
             onOpenQuickSwitcher={handleOpenQuickSwitcher}
-            onCreateLocalTerminal={() => {}}
-            onConnectSerial={() => {}}
             onDeleteHost={handleDeleteHost}
             onConnect={handleConnectToHost}
             onUpdateHosts={updateHosts}
@@ -320,10 +317,6 @@ function App({ settings }: { settings: SettingsState }) {
             }}
             onSelectTab={(tabId) => {
               setActiveTabId(tabId);
-              setIsQuickSwitcherOpen(false);
-              setQuickSearch('');
-            }}
-            onCreateLocalTerminal={() => {
               setIsQuickSwitcherOpen(false);
               setQuickSearch('');
             }}
