@@ -3,21 +3,6 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-// Custom plugin to suppress monaco-editor source map warnings
-const suppressMonacoSourcemapWarning = () => ({
-  name: 'suppress-monaco-sourcemap-warning',
-  apply: 'serve' as const,
-  configResolved(config: { logger: { warn: (msg: string, options?: { timestamp?: boolean }) => void } }) {
-    const originalWarn = config.logger.warn;
-    config.logger.warn = (msg: string, options?: { timestamp?: boolean }) => {
-      // Suppress monaco-editor source map warnings
-      if (msg.includes('monaco-editor') && msg.includes('source map')) return;
-      if (msg.includes('loader.js.map')) return;
-      originalWarn(msg, options);
-    };
-  },
-});
-
 export default defineConfig(() => {
     return {
       base: "./",
@@ -59,7 +44,7 @@ export default defineConfig(() => {
           },
         },
       },
-      plugins: [suppressMonacoSourcemapWarning(), tailwindcss(), react()],
+      plugins: [tailwindcss(), react()],
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
