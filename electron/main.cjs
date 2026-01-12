@@ -540,24 +540,7 @@ app.on("window-all-closed", () => {
   }
 });
 
-// Cleanup all PTY sessions and port forwarding tunnels before quitting
+// Cleanup before quitting (placeholder for future PTY/port forwarding cleanup)
 app.on("will-quit", () => {
-  try {
-    terminalBridge.cleanupAllSessions();
-  } catch (err) {
-    console.warn("Error during terminal cleanup:", err);
-  }
-  try {
-    portForwardingBridge.stopAllPortForwards();
-  } catch (err) {
-    console.warn("Error during port forwarding cleanup:", err);
-  }
+  // Terminal and port forwarding cleanup will be added when those bridges are implemented
 });
-
-// Export for testing
-module.exports = {
-  sessions,
-  sftpClients,
-  ensureKeyDir,
-  writeKeyToDisk,
-};
