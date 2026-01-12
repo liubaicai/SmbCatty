@@ -2,7 +2,7 @@
  * WebDAV Adapter - webdav client library
  */
 
-import { AuthType,createClient } from 'webdav';
+import { AuthType, createClient } from 'webdav';
 import {
 SYNC_CONSTANTS,
 type OAuthTokens,

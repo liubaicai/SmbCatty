@@ -19,7 +19,7 @@ type PKCEChallenge,
 type ProviderAccount,
 type SyncedFile,
 } from '../../../domain/sync';
-import { arrayBufferToBase64,generateRandomBytes } from '../EncryptionService';
+import { arrayBufferToBase64, generateRandomBytes } from '../EncryptionService';
 import { smbcattyBridge } from '../smbcattyBridge';
 
 // ============================================================================
