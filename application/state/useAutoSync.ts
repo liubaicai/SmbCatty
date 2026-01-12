@@ -7,13 +7,13 @@
  * - Debounced sync to avoid too frequent API calls
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import { useCloudSync } from './useCloudSync';
-import { useI18n } from '../i18n/I18nProvider';
+import { useCallback,useEffect,useRef } from 'react';
+import { toast } from '../../components/ui/toast';
+import type { SyncPayload } from '../../domain/sync';
 import { getCloudSyncManager } from '../../infrastructure/services/CloudSyncManager';
 import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
-import type { SyncPayload } from '../../domain/sync';
-import { toast } from '../../components/ui/toast';
+import { useI18n } from '../i18n/I18nProvider';
+import { useCloudSync } from './useCloudSync';
 
 interface AutoSyncConfig {
   // Data to sync

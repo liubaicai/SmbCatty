@@ -10,29 +10,29 @@
  */
 
 import {
-  type CloudProvider,
-  type SecurityState,
-  type SyncState,
-  type SyncPayload,
-  type SyncResult,
-  type ConflictInfo,
-  type ConflictResolution,
-  type MasterKeyConfig,
-  type UnlockedMasterKey,
-  type ProviderConnection,
-  type ProviderAccount,
-  type SyncEvent,
-  type OAuthTokens,
-  type SyncHistoryEntry,
-  type WebDAVConfig,
-  type S3Config,
-  SYNC_CONSTANTS,
-  SYNC_STORAGE_KEYS,
-  generateDeviceId,
-  getDefaultDeviceName,
+SYNC_CONSTANTS,
+SYNC_STORAGE_KEYS,
+generateDeviceId,
+getDefaultDeviceName,
+type CloudProvider,
+type ConflictInfo,
+type ConflictResolution,
+type MasterKeyConfig,
+type OAuthTokens,
+type ProviderAccount,
+type ProviderConnection,
+type S3Config,
+type SecurityState,
+type SyncEvent,
+type SyncHistoryEntry,
+type SyncPayload,
+type SyncResult,
+type SyncState,
+type UnlockedMasterKey,
+type WebDAVConfig,
 } from '../../domain/sync';
 import { EncryptionService } from './EncryptionService';
-import { createAdapter, type CloudAdapter } from './adapters';
+import { createAdapter,type CloudAdapter } from './adapters';
 import type { GitHubAdapter } from './adapters/GitHubAdapter';
 import type { GoogleDriveAdapter } from './adapters/GoogleDriveAdapter';
 import type { OneDriveAdapter } from './adapters/OneDriveAdapter';

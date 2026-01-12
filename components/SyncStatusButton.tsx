@@ -10,29 +10,29 @@
  * Clicking opens a popover with sync status details and history.
  */
 
-import React, { useState } from 'react';
 import {
-    Cloud,
-    CloudOff,
-    Github,
-    Loader2,
-    RefreshCw,
-    Settings,
-    X,
-    ArrowUp,
-    ArrowDown,
-    Database,
-    Server,
+ArrowDown,
+ArrowUp,
+Cloud,
+CloudOff,
+Database,
+Github,
+Loader2,
+RefreshCw,
+Server,
+Settings,
+X,
 } from 'lucide-react';
+import React,{ useState } from 'react';
+import { useI18n } from '../application/i18n/I18nProvider';
 import { useCloudSync } from '../application/state/useCloudSync';
 import type { CloudProvider } from '../domain/sync';
-import { useI18n } from '../application/i18n/I18nProvider';
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+Popover,
+PopoverContent,
+PopoverTrigger,
 } from './ui/popover';
 import { toast } from './ui/toast';
 

@@ -1,12 +1,12 @@
-import { Suspense, lazy } from 'react';
-import ReactDOM from 'react-dom/client';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
 import '@fontsource/space-grotesk/400.css';
 import '@fontsource/space-grotesk/500.css';
 import '@fontsource/space-grotesk/600.css';
 import '@fontsource/space-grotesk/700.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
-import '@fontsource/jetbrains-mono/600.css';
+import { Suspense,lazy } from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App';
 import { I18nProvider } from './application/i18n/I18nProvider';
 import { ToastProvider } from './components/ui/toast';

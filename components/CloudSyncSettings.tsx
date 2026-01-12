@@ -7,39 +7,39 @@
  * - Sync status and conflict resolution
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
 import {
-    AlertTriangle,
-    Check,
-    Cloud,
-    CloudOff,
-    Copy,
-    Download,
-    Database,
-    ExternalLink,
-    Eye,
-    EyeOff,
-    Github,
-    Key,
-    Loader2,
-    RefreshCw,
-    Settings,
-    Server,
-    Shield,
-    ShieldCheck,
-    Trash2,
-    X,
+AlertTriangle,
+Check,
+Cloud,
+CloudOff,
+Copy,
+Database,
+Download,
+ExternalLink,
+Eye,
+EyeOff,
+Github,
+Key,
+Loader2,
+RefreshCw,
+Server,
+Settings,
+Shield,
+ShieldCheck,
+Trash2,
+X,
 } from 'lucide-react';
-import { useCloudSync } from '../application/state/useCloudSync';
+import React,{ useCallback,useEffect,useState } from 'react';
 import { useI18n } from '../application/i18n/I18nProvider';
-import type { CloudProvider, ConflictInfo, SyncPayload, WebDAVAuthType, WebDAVConfig, S3Config } from '../domain/sync';
+import { useCloudSync } from '../application/state/useCloudSync';
+import type { CloudProvider,ConflictInfo,S3Config,SyncPayload,WebDAVAuthType,WebDAVConfig } from '../domain/sync';
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from './ui/select';
+import { Tabs,TabsContent,TabsList,TabsTrigger } from './ui/tabs';
 import { toast } from './ui/toast';
 
 // ============================================================================

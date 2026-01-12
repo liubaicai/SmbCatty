@@ -1,13 +1,13 @@
-import { Bell, Copy, FileText, LayoutGrid, Minus, Moon, MoreHorizontal, Plus, Shield, Square, Sun, TerminalSquare, X } from 'lucide-react';
-import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { activeTabStore, useActiveTabId } from '../application/state/activeTabStore';
-import { useWindowControls } from '../application/state/useWindowControls';
+import { Bell,Copy,FileText,LayoutGrid,Minus,Moon,MoreHorizontal,Plus,Shield,Square,Sun,TerminalSquare,X } from 'lucide-react';
+import React,{ memo,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState } from 'react';
 import { useI18n } from '../application/i18n/I18nProvider';
+import { activeTabStore,useActiveTabId } from '../application/state/activeTabStore';
+import { useWindowControls } from '../application/state/useWindowControls';
 import { cn } from '../lib/utils';
-import { TerminalSession, Workspace, ConnectionLog } from '../types';
-import { Button } from './ui/button';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from './ui/context-menu';
+import { ConnectionLog,TerminalSession,Workspace } from '../types';
 import { SyncStatusButton } from './SyncStatusButton';
+import { Button } from './ui/button';
+import { ContextMenu,ContextMenuContent,ContextMenuItem,ContextMenuTrigger } from './ui/context-menu';
 
 // LogView type definition (simplified for SMB client)
 export interface LogView {

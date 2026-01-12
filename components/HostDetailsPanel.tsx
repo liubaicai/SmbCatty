@@ -1,5 +1,5 @@
 import React from 'react';
-import { Host, Identity, SSHKey } from '../types';
+import { Host,Identity,SSHKey } from '../types';
 
 interface HostDetailsPanelProps {
   host: Host | null;

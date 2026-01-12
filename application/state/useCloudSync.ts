@@ -6,29 +6,29 @@
  * Uses useSyncExternalStore for real-time state synchronization across all components.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback,useEffect,useMemo,useRef,useState,useSyncExternalStore } from 'react';
 import {
-  type CloudProvider,
-  type SecurityState,
-  type SyncState,
-  type ProviderConnection,
-  type ConflictInfo,
-  type ConflictResolution,
-  type SyncPayload,
-  type SyncResult,
-  type SyncHistoryEntry,
-  type WebDAVConfig,
-  type S3Config,
-  formatLastSync,
-  getSyncDotColor,
+formatLastSync,
+getSyncDotColor,
+type CloudProvider,
+type ConflictInfo,
+type ConflictResolution,
+type ProviderConnection,
+type S3Config,
+type SecurityState,
+type SyncHistoryEntry,
+type SyncPayload,
+type SyncResult,
+type SyncState,
+type WebDAVConfig,
 } from '../../domain/sync';
+import type { DeviceFlowState } from '../../infrastructure/services/adapters/GitHubAdapter';
 import {
-  CloudSyncManager,
-  getCloudSyncManager,
-  type SyncManagerState,
+CloudSyncManager,
+getCloudSyncManager,
+type SyncManagerState,
 } from '../../infrastructure/services/CloudSyncManager';
 import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
-import type { DeviceFlowState } from '../../infrastructure/services/adapters/GitHubAdapter';
 
 // ============================================================================
 // Types

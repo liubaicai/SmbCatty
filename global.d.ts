@@ -1,5 +1,5 @@
+import type { S3Config,SMBConfig,SyncedFile,WebDAVConfig } from "./domain/sync";
 import type { RemoteFile } from "./types";
-import type { S3Config, SMBConfig, SyncedFile, WebDAVConfig } from "./domain/sync";
 
 declare global {
 

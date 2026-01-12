@@ -12,11 +12,11 @@
  */
 
 import {
-  SYNC_CONSTANTS,
-  type OAuthTokens,
-  type ProviderAccount,
-  type SyncedFile,
-  type GitHubDeviceCodeResponse,
+SYNC_CONSTANTS,
+type GitHubDeviceCodeResponse,
+type OAuthTokens,
+type ProviderAccount,
+type SyncedFile,
 } from '../../../domain/sync';
 import { smbcattyBridge } from '../smbcattyBridge';
 

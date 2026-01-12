@@ -1,29 +1,29 @@
 import { useCallback,useEffect,useLayoutEffect,useMemo,useState } from 'react';
-import { SyncConfig, TerminalSettings, DEFAULT_TERMINAL_SETTINGS, HotkeyScheme, CustomKeyBindings, DEFAULT_KEY_BINDINGS, KeyBinding, UILanguage, TerminalTheme } from '../../domain/models';
+import { CustomKeyBindings,DEFAULT_KEY_BINDINGS,DEFAULT_TERMINAL_SETTINGS,HotkeyScheme,KeyBinding,SyncConfig,TerminalSettings,TerminalTheme,UILanguage } from '../../domain/models';
+import { DEFAULT_FONT_SIZE } from '../../infrastructure/config/fonts';
+import { DEFAULT_UI_LOCALE,resolveSupportedLocale } from '../../infrastructure/config/i18n';
 import {
+STORAGE_KEY_ACCENT_MODE,
 STORAGE_KEY_COLOR,
+STORAGE_KEY_CUSTOM_CSS,
+STORAGE_KEY_CUSTOM_KEY_BINDINGS,
+STORAGE_KEY_HOTKEY_RECORDING,
+STORAGE_KEY_HOTKEY_SCHEME,
+STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR,
 STORAGE_KEY_SYNC,
-STORAGE_KEY_TERM_THEME,
-STORAGE_KEY_THEME,
 STORAGE_KEY_TERM_FONT_FAMILY,
 STORAGE_KEY_TERM_FONT_SIZE,
 STORAGE_KEY_TERM_SETTINGS,
-STORAGE_KEY_HOTKEY_SCHEME,
-STORAGE_KEY_CUSTOM_KEY_BINDINGS,
-STORAGE_KEY_HOTKEY_RECORDING,
-STORAGE_KEY_CUSTOM_CSS,
+STORAGE_KEY_TERM_THEME,
+STORAGE_KEY_THEME,
 STORAGE_KEY_UI_LANGUAGE,
-STORAGE_KEY_ACCENT_MODE,
-STORAGE_KEY_UI_THEME_LIGHT,
 STORAGE_KEY_UI_THEME_DARK,
-STORAGE_KEY_SMB_DOUBLE_CLICK_BEHAVIOR,
+STORAGE_KEY_UI_THEME_LIGHT,
 } from '../../infrastructure/config/storageKeys';
-import { DEFAULT_UI_LOCALE, resolveSupportedLocale } from '../../infrastructure/config/i18n';
-import { DEFAULT_FONT_SIZE } from '../../infrastructure/config/fonts';
-import { DARK_UI_THEMES, LIGHT_UI_THEMES, UiThemeTokens, getUiThemeById } from '../../infrastructure/config/uiThemes';
-import { useAvailableFonts } from './fontStore';
+import { DARK_UI_THEMES,LIGHT_UI_THEMES,UiThemeTokens,getUiThemeById } from '../../infrastructure/config/uiThemes';
 import { localStorageAdapter } from '../../infrastructure/persistence/localStorageAdapter';
 import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
+import { useAvailableFonts } from './fontStore';
 
 const DEFAULT_THEME: 'light' | 'dark' = 'light';
 const DEFAULT_LIGHT_UI_THEME = 'snow';

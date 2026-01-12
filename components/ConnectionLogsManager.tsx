@@ -1,15 +1,15 @@
 import {
-    Bookmark,
-    ChevronDown,
-    Server,
-    Terminal,
-    Trash2,
-    User,
+Bookmark,
+ChevronDown,
+Server,
+Terminal,
+Trash2,
+User,
 } from "lucide-react";
-import React, { memo, useCallback, useMemo } from "react";
+import React,{ memo,useCallback,useMemo } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
 import { cn } from "../lib/utils";
-import { ConnectionLog, Host } from "../types";
+import { ConnectionLog,Host } from "../types";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface ConnectionLogsManagerProps {

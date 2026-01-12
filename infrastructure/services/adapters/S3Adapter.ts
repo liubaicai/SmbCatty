@@ -3,18 +3,18 @@
  */
 
 import {
-  S3Client,
-  HeadObjectCommand,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
+DeleteObjectCommand,
+GetObjectCommand,
+HeadObjectCommand,
+PutObjectCommand,
+S3Client,
 } from '@aws-sdk/client-s3';
 import {
-  SYNC_CONSTANTS,
-  type S3Config,
-  type SyncedFile,
-  type ProviderAccount,
-  type OAuthTokens,
+SYNC_CONSTANTS,
+type OAuthTokens,
+type ProviderAccount,
+type S3Config,
+type SyncedFile,
 } from '../../../domain/sync';
 import { smbcattyBridge } from '../smbcattyBridge';
 

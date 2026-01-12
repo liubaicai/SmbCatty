@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import type { HotkeyScheme, KeyBinding } from "../../../domain/models";
-import { keyEventToString } from "../../../domain/models";
+import { useCallback,useEffect,useMemo,useState } from "react";
 import { useI18n } from "../../../application/i18n/I18nProvider";
+import type { HotkeyScheme,KeyBinding } from "../../../domain/models";
+import { keyEventToString } from "../../../domain/models";
 import { cn } from "../../../lib/utils";
 import { Button } from "../../ui/button";
-import { SectionHeader, Select, SettingsTabContent, SettingRow } from "../settings-ui";
+import { SectionHeader,Select,SettingRow,SettingsTabContent } from "../settings-ui";
 
 export default function SettingsShortcutsTab(props: {
   hotkeyScheme: HotkeyScheme;

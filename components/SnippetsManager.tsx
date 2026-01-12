@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '../application/i18n/I18nProvider';
-import { Snippet, TerminalSession } from '../types';
+import { Snippet,TerminalSession } from '../types';
 
 interface SnippetsManagerProps {
   snippets: Snippet[];

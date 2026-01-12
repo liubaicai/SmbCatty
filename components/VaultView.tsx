@@ -1,15 +1,22 @@
-import React, { memo, useCallback, useState } from "react";
+import {
+FolderOpen,
+Plus,
+Search,
+Settings,
+Zap,
+} from "lucide-react";
+import React,{ memo,useCallback,useState } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
 import { sanitizeHost } from "../domain/host";
 import { cn } from "../lib/utils";
 import {
-  ConnectionLog,
-  Host,
-  Identity,
-  KnownHost,
-  SSHKey,
-  ShellHistoryEntry,
-  Snippet,
+ConnectionLog,
+Host,
+Identity,
+KnownHost,
+SSHKey,
+ShellHistoryEntry,
+Snippet,
 } from "../types";
 import { AppLogo } from "./AppLogo";
 import HostDetailsPanel from "./HostDetailsPanel";
@@ -17,13 +24,6 @@ import SnippetsManager from "./SnippetsManager";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "./ui/toast";
-import {
-  FolderOpen,
-  Plus,
-  Search,
-  Settings,
-  Zap,
-} from "lucide-react";
 
 export type VaultSection = "hosts" | "snippets";
 
