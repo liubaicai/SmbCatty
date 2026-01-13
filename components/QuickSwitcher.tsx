@@ -1,21 +1,21 @@
 import {
-  LayoutGrid,
-  Search,
-  Shield,
+LayoutGrid,
+Search,
+Shield,
 } from "lucide-react";
-import React, { memo, useEffect, useRef, useState } from "react";
+import React,{ memo,useEffect,useRef,useState } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
-import { Host, TerminalSession, Workspace } from "../types";
 import { KeyBinding } from "../domain/models";
+import { Host,TerminalSession,Workspace } from "../types";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
 
 type QuickSwitcherItem = {
   type: "host" | "tab" | "workspace" | "action";
   id: string;
   data?: Host | TerminalSession | Workspace;
 };
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
 
 interface QuickSwitcherProps {
   isOpen: boolean;

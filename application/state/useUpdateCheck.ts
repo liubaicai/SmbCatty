@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { checkForUpdates, getReleaseUrl, type ReleaseInfo, type UpdateCheckResult } from '../../infrastructure/services/updateService';
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { STORAGE_KEY_UPDATE_DISMISSED_VERSION,STORAGE_KEY_UPDATE_LAST_CHECK } from '../../infrastructure/config/storageKeys';
 import { localStorageAdapter } from '../../infrastructure/persistence/localStorageAdapter';
-import { STORAGE_KEY_UPDATE_DISMISSED_VERSION, STORAGE_KEY_UPDATE_LAST_CHECK } from '../../infrastructure/config/storageKeys';
 import { smbcattyBridge } from '../../infrastructure/services/smbcattyBridge';
+import { checkForUpdates,getReleaseUrl,type ReleaseInfo,type UpdateCheckResult } from '../../infrastructure/services/updateService';
 
 // Check for updates at most once per hour
 const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;

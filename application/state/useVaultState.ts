@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback,useEffect,useState } from "react";
 import { sanitizeHost } from "../../domain/host";
 import {
-  ConnectionLog,
-  Host,
-  Identity,
-  KeyCategory,
-  KnownHost,
-  ShellHistoryEntry,
-  Snippet,
-  SSHKey,
+ConnectionLog,
+Host,
+Identity,
+KeyCategory,
+KnownHost,
+ShellHistoryEntry,
+Snippet,
+SSHKey,
 } from "../../domain/models";
 import {
-  INITIAL_HOSTS,
-  INITIAL_SNIPPETS,
+INITIAL_HOSTS,
+INITIAL_SNIPPETS,
 } from "../../infrastructure/config/defaultData";
 import {
-  STORAGE_KEY_CONNECTION_LOGS,
-  STORAGE_KEY_GROUPS,
-  STORAGE_KEY_HOSTS,
-  STORAGE_KEY_IDENTITIES,
-  STORAGE_KEY_KEYS,
-  STORAGE_KEY_KNOWN_HOSTS,
-  STORAGE_KEY_LEGACY_KEYS,
-  STORAGE_KEY_SHELL_HISTORY,
-  STORAGE_KEY_SNIPPET_PACKAGES,
-  STORAGE_KEY_SNIPPETS,
+STORAGE_KEY_CONNECTION_LOGS,
+STORAGE_KEY_GROUPS,
+STORAGE_KEY_HOSTS,
+STORAGE_KEY_IDENTITIES,
+STORAGE_KEY_KEYS,
+STORAGE_KEY_KNOWN_HOSTS,
+STORAGE_KEY_LEGACY_KEYS,
+STORAGE_KEY_SHELL_HISTORY,
+STORAGE_KEY_SNIPPET_PACKAGES,
+STORAGE_KEY_SNIPPETS,
 } from "../../infrastructure/config/storageKeys";
 import { localStorageAdapter } from "../../infrastructure/persistence/localStorageAdapter";
 

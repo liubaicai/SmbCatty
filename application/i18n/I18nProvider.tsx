@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useMemo } from 'react';
-import { DEFAULT_UI_LOCALE, resolveSupportedLocale } from '../../infrastructure/config/i18n';
+import React,{ createContext,useContext,useMemo } from 'react';
+import { DEFAULT_UI_LOCALE,resolveSupportedLocale } from '../../infrastructure/config/i18n';
 import { MESSAGES_BY_LOCALE } from './messages';
 
 type InterpolationValues = Record<string, string | number | boolean | null | undefined>;

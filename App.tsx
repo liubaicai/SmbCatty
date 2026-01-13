@@ -1,17 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState, Suspense, lazy } from 'react';
+import React,{ Suspense,lazy,useCallback,useEffect,useMemo,useState } from 'react';
+import { I18nProvider,useI18n } from './application/i18n/I18nProvider';
 import { useIsVaultActive } from './application/state/activeTabStore';
+import { initializeFonts } from './application/state/fontStore';
 import { useAutoSync } from './application/state/useAutoSync';
 import { useSettingsState } from './application/state/useSettingsState';
 import { useUpdateCheck } from './application/state/useUpdateCheck';
 import { useVaultState } from './application/state/useVaultState';
 import { useWindowControls } from './application/state/useWindowControls';
-import { initializeFonts } from './application/state/fontStore';
-import { I18nProvider, useI18n } from './application/i18n/I18nProvider';
+import { TopTabs } from './components/TopTabs';
+import { ToastProvider,toast } from './components/ui/toast';
+import { VaultSection,VaultView } from './components/VaultView';
 import { matchesKeyBinding } from './domain/models';
 import { smbcattyBridge } from './infrastructure/services/smbcattyBridge';
-import { TopTabs } from './components/TopTabs';
-import { ToastProvider, toast } from './components/ui/toast';
-import { VaultView, VaultSection } from './components/VaultView';
 import { cn } from './lib/utils';
 import { Host } from './types';
 

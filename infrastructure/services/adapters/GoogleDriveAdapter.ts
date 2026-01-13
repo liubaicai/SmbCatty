@@ -13,11 +13,11 @@
  */
 
 import {
-  SYNC_CONSTANTS,
-  type OAuthTokens,
-  type ProviderAccount,
-  type SyncedFile,
-  type PKCEChallenge,
+SYNC_CONSTANTS,
+type OAuthTokens,
+type PKCEChallenge,
+type ProviderAccount,
+type SyncedFile,
 } from '../../../domain/sync';
 import { arrayBufferToBase64, generateRandomBytes } from '../EncryptionService';
 import { smbcattyBridge } from '../smbcattyBridge';

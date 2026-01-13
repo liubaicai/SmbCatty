@@ -1,4 +1,4 @@
-import { TerminalFont, withCjkFallback } from "../infrastructure/config/fonts"
+import { TerminalFont, withCjkFallback } from "../infrastructure/config/fonts";
 
 /**
  * Type definition for Local Font Access API

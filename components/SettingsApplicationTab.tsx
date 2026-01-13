@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ArrowUpCircle, Bug, Check, Github, Loader2, MessageCircle, Newspaper, RefreshCcw } from "lucide-react";
-import AppLogo from "./AppLogo";
-import { Button } from "./ui/button";
-import { cn } from "../lib/utils";
+import { ArrowUpCircle,Bug,Check,Github,Loader2,MessageCircle,Newspaper,RefreshCcw } from "lucide-react";
+import React,{ useEffect,useMemo,useState } from "react";
+import { useI18n } from "../application/i18n/I18nProvider";
 import { useApplicationBackend } from "../application/state/useApplicationBackend";
 import { useUpdateCheck } from "../application/state/useUpdateCheck";
-import { useI18n } from "../application/i18n/I18nProvider";
+import { cn } from "../lib/utils";
+import AppLogo from "./AppLogo";
 import { SettingsTabContent } from "./settings/settings-ui";
+import { Button } from "./ui/button";
 import { toast } from "./ui/toast";
 
 type AppInfo = {

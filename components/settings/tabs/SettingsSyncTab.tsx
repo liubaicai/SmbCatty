@@ -1,5 +1,5 @@
-import React, { useCallback } from "react";
-import type { Host, Identity, Snippet, SSHKey } from "../../../domain/models";
+import { useCallback } from "react";
+import type { Host,Identity,Snippet,SSHKey } from "../../../domain/models";
 import type { SyncPayload } from "../../../domain/sync";
 import { CloudSyncSettings } from "../../CloudSyncSettings";
 import { SettingsTabContent } from "../settings-ui";

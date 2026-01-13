@@ -1,25 +1,25 @@
-import { Key, Lock, Plus, Save, Server, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Key,Lock,Plus,Save,Server,X } from "lucide-react";
+import React,{ useEffect,useState } from "react";
 import { useI18n } from "../application/i18n/I18nProvider";
 import { cn } from "../lib/utils";
-import { Host, SSHKey } from "../types";
+import { Host,SSHKey } from "../types";
 import { Button } from "./ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+Dialog,
+DialogContent,
+DialogDescription,
+DialogFooter,
+DialogHeader,
+DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
 } from "./ui/select";
 
 interface HostFormProps {

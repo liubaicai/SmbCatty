@@ -1,4 +1,4 @@
-import en, { type Messages } from './locales/en';
+import en,{ type Messages } from './locales/en';
 import zhCN from './locales/zh-CN';
 
 // Keep keys stable; add new locales by adding another import and map entry.

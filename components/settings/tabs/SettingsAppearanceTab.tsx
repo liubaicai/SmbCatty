@@ -1,10 +1,10 @@
-import React, { useCallback } from "react";
-import { Check, Moon, Palette, Sun } from "lucide-react";
+import { Check,Moon,Palette,Sun } from "lucide-react";
+import { useCallback } from "react";
 import { useI18n } from "../../../application/i18n/I18nProvider";
-import { DARK_UI_THEMES, LIGHT_UI_THEMES } from "../../../infrastructure/config/uiThemes";
 import { SUPPORTED_UI_LOCALES } from "../../../infrastructure/config/i18n";
+import { DARK_UI_THEMES,LIGHT_UI_THEMES } from "../../../infrastructure/config/uiThemes";
 import { cn } from "../../../lib/utils";
-import { SectionHeader, SettingsTabContent, SettingRow, Toggle, Select } from "../settings-ui";
+import { SectionHeader,Select,SettingRow,SettingsTabContent,Toggle } from "../settings-ui";
 
 export default function SettingsAppearanceTab(props: {
   theme: "dark" | "light";

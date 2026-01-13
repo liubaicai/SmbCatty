@@ -11,14 +11,14 @@
  */
 
 import {
-  SYNC_CONSTANTS,
-  type EncryptionResult,
-  type DecryptionInput,
-  type MasterKeyConfig,
-  type UnlockedMasterKey,
-  type SyncedFile,
-  type SyncFileMeta,
-  type SyncPayload,
+SYNC_CONSTANTS,
+type DecryptionInput,
+type EncryptionResult,
+type MasterKeyConfig,
+type SyncedFile,
+type SyncFileMeta,
+type SyncPayload,
+type UnlockedMasterKey,
 } from '../../domain/sync';
 
 // ============================================================================

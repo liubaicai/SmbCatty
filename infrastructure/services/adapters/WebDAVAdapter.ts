@@ -4,11 +4,11 @@
 
 import { AuthType, createClient } from 'webdav';
 import {
-  SYNC_CONSTANTS,
-  type WebDAVConfig,
-  type SyncedFile,
-  type ProviderAccount,
-  type OAuthTokens,
+SYNC_CONSTANTS,
+type OAuthTokens,
+type ProviderAccount,
+type SyncedFile,
+type WebDAVConfig,
 } from '../../../domain/sync';
 import { smbcattyBridge } from '../smbcattyBridge';
 

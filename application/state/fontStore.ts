@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { TERMINAL_FONTS, type TerminalFont } from '../../infrastructure/config/fonts';
+import { TERMINAL_FONTS,type TerminalFont } from '../../infrastructure/config/fonts';
 import { getMonospaceFonts } from '../../lib/localFonts';
 
 /**

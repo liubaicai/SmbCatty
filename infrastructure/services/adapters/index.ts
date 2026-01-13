@@ -3,12 +3,12 @@
  */
 
 import type {
-  CloudProvider,
-  SyncedFile,
-  OAuthTokens,
-  ProviderAccount,
-  WebDAVConfig,
-  S3Config,
+CloudProvider,
+OAuthTokens,
+ProviderAccount,
+S3Config,
+SyncedFile,
+WebDAVConfig,
 } from '../../../domain/sync';
 
 /**

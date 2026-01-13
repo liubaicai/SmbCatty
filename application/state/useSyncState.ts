@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { loadFromGist, syncToGist } from "../../infrastructure/services/syncService";
+import { useCallback,useState } from "react";
+import { loadFromGist,syncToGist } from "../../infrastructure/services/syncService";
 
 export type SyncStatus = "idle" | "success" | "error";
 
